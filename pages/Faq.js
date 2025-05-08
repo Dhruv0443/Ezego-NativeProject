@@ -9,7 +9,7 @@ const Faq = () => {
         // Simulate a delay (e.g., fetching data) by using a timeout
         const timer = setTimeout(() => {
             setIsLoading(false); // Hide loader after 4-5 seconds
-        }, 4000);
+        }, 2000);
 
         // Cleanup the timer on component unmount
         return () => clearTimeout(timer);
@@ -56,44 +56,53 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "#fff",
+        backgroundColor: "#f3f4f6", // Softer background for the loading screen
     },
     loaderText: {
         fontSize: 16,
-        color: "#4A5568",
+        color: "#64748B", // Slightly darker text for better readability
         marginTop: 10,
     },
     container: {
         flex: 1,
-        backgroundColor: "#fff",
-        paddingHorizontal: 16,
+        backgroundColor: "#e5e7eb", // Light gray for a subtle background tone
+        paddingHorizontal: 20,
         paddingVertical: 20,
     },
     title: {
-        fontSize: 24,
+        fontSize: 26, // Slightly larger font for emphasis
         fontWeight: "bold",
         textAlign: "center",
-        color: "#4A5568",
+        color: "#1f2937", // Deep gray for a clean and professional look
         marginBottom: 20,
     },
     faqItem: {
         marginBottom: 20,
+        backgroundColor: "#fff", // White card style for FAQ items
+        padding: 16,
+        borderRadius: 8, // Rounded corners for a modern design
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3, // Subtle shadow effect
+        elevation: 3, // Shadow effect for Android
     },
     question: {
         fontSize: 18,
         fontWeight: "bold",
-        color: "#2D3748",
+        color: "#111827", // Dark gray for strong contrast
         marginBottom: 8,
     },
     answer: {
         fontSize: 16,
-        color: "#4A5568",
+        color: "#374151", // Medium gray for balanced readability
         marginBottom: 8,
+        lineHeight: 22, // Better spacing for multiline answers
     },
     toggleText: {
         fontSize: 16,
         fontWeight: "bold",
-        color: "#3182CE",
+        color: "#2563eb", // A vibrant blue for action text
         textAlign: "right",
     },
     separator: {

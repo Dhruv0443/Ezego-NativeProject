@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, Image, TouchableOpacity, FlatList, StyleSheet, ScrollView } from "react-native";
-import FontAwesome from "react-native-vector-icons/FontAwesome"; // Correct import
+import Icon from "react-native-vector-icons/FontAwesome"; // Correct import
 
 const Home = ({ navigation }) => {
     const [showAllRides, setShowAllRides] = useState(false);
@@ -34,32 +34,30 @@ const Home = ({ navigation }) => {
                     <Text style={styles.heroText}>Discover pocket-friendly rides!</Text>
                 </View>
             </View>
-
             {/* Features Section */}
             <View style={styles.features}>
                 <View style={styles.feature}>
-                    <FontAwesome name="server" size={24} style={styles.featureIcon} />
+                    <Icon name="server" size={24} style={styles.featureIcon} />
                     <Text style={styles.featureTitle}>Discover Pocket-Friendly Rides!</Text>
                     <Text style={styles.featureText}>
                         Find the perfect ride that suits your budget. Explore destinations and routes offering affordable travel options by carpool.
                     </Text>
                 </View>
                 <View style={styles.feature}>
-                    <FontAwesome name="users" size={24} style={styles.featureIcon} />
+                    <Icon name="users" size={24} style={styles.featureIcon} />
                     <Text style={styles.featureTitle}>Trust who you travel with!</Text>
                     <Text style={styles.featureText}>
                         Safety and peace of mind are our top priorities. Book your ride securely, knowing who you're traveling with.
                     </Text>
                 </View>
                 <View style={styles.feature}>
-                    <FontAwesome name="check-circle" size={24} style={styles.featureIcon} />
+                    <Icon name="check-circle" size={24} style={styles.featureIcon} />
                     <Text style={styles.featureTitle}>Booking Made Effortless!</Text>
                     <Text style={styles.featureText}>
                         Booking your next ride is as easy as a few taps. Experience the convenience of booking a ride close to you.
                     </Text>
                 </View>
             </View>
-
             {/* Offer Section */}
             <View style={styles.offerSection}>
                 <Image source={require("../assets/img1.png")} style={styles.offerImage} />
@@ -73,7 +71,6 @@ const Home = ({ navigation }) => {
                     </TouchableOpacity>
                 </View>
             </View>
-
             {/* FAQ Section */}
             <View style={styles.faqSection}>
                 <Text style={styles.faqTitle}>Need Assistance? We're Here to Help!</Text>
@@ -84,7 +81,6 @@ const Home = ({ navigation }) => {
                     <Text style={styles.buttonText}>Explore our Help Centre</Text>
                 </TouchableOpacity>
             </View>
-
             {/* Popular Rides Section */}
             <View style={styles.popularRides}>
                 <Text style={styles.popularTitle}>See our most popular rides!</Text>
