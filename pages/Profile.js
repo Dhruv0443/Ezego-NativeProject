@@ -1,463 +1,180 @@
-// import React, { useState } from 'react';
-// import {
-//   View,
-//   Text,
-//   TextInput,
-//   Button,
-//   Image,
-//   TouchableOpacity,
-//   StyleSheet,
-//   Alert,
-// } from 'react-native';
-// import { launchCamera } from 'react-native-image-picker';
-// import DocumentPicker from 'react-native-document-picker';
-// import axios from 'axios';
-// import API_BASE_URL from '../ApiBaseURL';
-// import CookieManager from '@react-native-cookies/cookies'; // For native cookies
+//Profile.js
 
-// const Verification = ({ onVerify }) => {
-//   const [formData, setFormData] = useState({
-//     aadharCard: null,
-//     carName: '',
-//     carNumber: '',
-//     livePhoto: null,
-//   });
-
-//   const [photoUri, setPhotoUri] = useState(null);
-//   const [verificationStatus, setVerificationStatus] = useState('');
-//   const [errors, setErrors] = useState({});
-
-//   const validateCarNumber = (carNumber) => {
-//     const re = /^[A-Z]{2}\s\d{2}\s[A-Z]{2}\s\d{4}$/;
-//     return re.test(String(carNumber));
-//   };
-
-//   const handleCarNumberChange = (text) => {
-//     setFormData({ ...formData, carNumber: text });
-//     setErrors({
-//       ...errors,
-//       carNumber: validateCarNumber(text) ? '' : 'Format: XX 00 XX 0000',
-//     });
-//   };
-
-//   const handleLivePhotoCapture = async () => {
-//     const result = await launchCamera({ mediaType: 'photo', cameraType: 'front' });
-
-//     if (!result.didCancel && result.assets && result.assets.length > 0) {
-//       const photo = result.assets[0];
-//       setFormData({ ...formData, livePhoto: { uri: photo.uri, type: photo.type, name: photo.fileName } });
-//       setPhotoUri(photo.uri);
-//     }
-//   };
-
-//   const handleAadharUpload = async () => {
-//     try {
-//       const result = await DocumentPicker.pickSingle({ type: [DocumentPicker.types.images] });
-//       setFormData({ ...formData, aadharCard: result });
-//     } catch (err) {
-//       if (!DocumentPicker.isCancel(err)) console.warn(err);
-//     }
-//   };
-
-//   const handleVerification = async () => {
-//     if (!formData.carName || !formData.carNumber || !formData.aadharCard || !formData.livePhoto) {
-//       setVerificationStatus('Please fill in all fields');
-//       return;
-//     }
-
-//     const newData = new FormData();
-//     newData.append('carName', formData.carName);
-//     newData.append('carNumber', formData.carNumber);
-//     newData.append('livePhoto', {
-//       uri: formData.livePhoto.uri,
-//       type: formData.livePhoto.type,
-//       name: formData.livePhoto.name,
-//     });
-
-//     try {
-//       const cookies = await CookieManager.get(API_BASE_URL);
-//       const token = cookies?.accessToken?.value;
-
-//       const res = await axios.post(`${API_BASE_URL}users/verifyDriver`, newData, {
-//         headers: {
-//           'Content-Type': 'multipart/form-data',
-//           Authorization: `Bearer ${token}`,
-//         },
-//       });
-
-//       if (res.data.statusCode === 201) {
-//         Alert.alert('Success', 'Profile verified successfully');
-//         onVerify({
-//           carName: formData.carName,
-//           carNumber: formData.carNumber,
-//           livePhoto: formData.livePhoto,
-//         });
-//       } else {
-//         setVerificationStatus('Verification failed. Please try again.');
-//       }
-//     } catch (err) {
-//       console.error('Verification error:', err);
-//       setVerificationStatus('Verification failed. Please try again.');
-//     }
-//   };
-
-//   return (
-//     <View style={styles.container}>
-//       <Text style={styles.heading}>Verify Your Profile!</Text>
-//       <Text style={styles.subHeading}>YOU'RE JUST ONE STEP AWAY!!</Text>
-
-//       <TouchableOpacity style={styles.photoBtn} onPress={handleLivePhotoCapture}>
-//         <Text style={styles.photoBtnText}>Capture Live Photo</Text>
-//       </TouchableOpacity>
-
-//       {photoUri && (
-//         <Image source={{ uri: photoUri }} style={styles.previewImage} />
-//       )}
-
-//       <TextInput
-//         style={styles.input}
-//         placeholder="Car Name"
-//         value={formData.carName}
-//         onChangeText={(text) => setFormData({ ...formData, carName: text })}
-//       />
-
-//       <TextInput
-//         style={styles.input}
-//         placeholder="Car Number (XX 00 XX 0000)"
-//         value={formData.carNumber}
-//         onChangeText={handleCarNumberChange}
-//       />
-//       {errors.carNumber ? <Text style={styles.error}>{errors.carNumber}</Text> : null}
-
-//       <TouchableOpacity style={styles.uploadBtn} onPress={handleAadharUpload}>
-//         <Text style={styles.uploadBtnText}>
-//           {formData.aadharCard ? 'Aadhar Selected' : 'Upload Aadhar Card'}
-//         </Text>
-//       </TouchableOpacity>
-
-//       <TouchableOpacity style={styles.verifyBtn} onPress={handleVerification}>
-//         <Text style={styles.verifyBtnText}>Verify Profile</Text>
-//       </TouchableOpacity>
-
-//       {verificationStatus ? <Text style={styles.error}>{verificationStatus}</Text> : null}
-//     </View>
-//   );
-// };
-
-// const styles = StyleSheet.create({
-//   container: {
-//     padding: 20,
-//     marginTop: 40,
-//   },
-//   heading: {
-//     fontSize: 26,
-//     fontWeight: 'bold',
-//     color: '#333',
-//     marginBottom: 8,
-//   },
-//   subHeading: {
-//     fontSize: 14,
-//     fontWeight: '600',
-//     color: '#555',
-//     marginBottom: 20,
-//   },
-//   input: {
-//     borderWidth: 1,
-//     borderColor: '#aaa',
-//     borderRadius: 8,
-//     padding: 12,
-//     marginBottom: 10,
-//   },
-//   photoBtn: {
-//     backgroundColor: '#2563eb',
-//     padding: 10,
-//     borderRadius: 8,
-//     marginBottom: 10,
-//   },
-//   photoBtnText: {
-//     color: '#fff',
-//     textAlign: 'center',
-//   },
-//   previewImage: {
-//     width: 100,
-//     height: 100,
-//     marginBottom: 15,
-//     borderRadius: 8,
-//   },
-//   uploadBtn: {
-//     backgroundColor: '#10b981',
-//     padding: 10,
-//     borderRadius: 8,
-//     marginBottom: 10,
-//   },
-//   uploadBtnText: {
-//     color: '#fff',
-//     textAlign: 'center',
-//   },
-//   verifyBtn: {
-//     backgroundColor: '#4f46e5',
-//     padding: 12,
-//     borderRadius: 8,
-//     marginTop: 10,
-//   },
-//   verifyBtnText: {
-//     color: '#fff',
-//     textAlign: 'center',
-//     fontWeight: 'bold',
-//   },
-//   error: {
-//     color: 'red',
-//     marginBottom: 8,
-//   },
-// });
-
-// export default Verification;
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  Button,
-  Image,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-  Platform,
-} from 'react-native';
-import { launchCamera } from 'react-native-image-picker';
-import DocumentPicker from 'react-native-document-picker';
+import React from 'react';
+import { View, Text, TouchableOpacity, Alert, StyleSheet } from 'react-native';
+import IconUser from 'react-native-vector-icons/SimpleLineIcons';
+import IconAdd from 'react-native-vector-icons/AntDesign';
+import IconEmail from 'react-native-vector-icons/MaterialIcons';
+import IconPhone from 'react-native-vector-icons/FontAwesome6';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import API_BASE_URL from '../ApiBaseURL';
-import CookieManager from '@react-native-cookies/cookies';
-import { request, PERMISSIONS, check, RESULTS } from 'react-native-permissions'; // Permissions Handling
 
-const Verification = ({ onVerify }) => {
-  const [formData, setFormData] = useState({
-    aadharCard: null,
-    carName: '',
-    carNumber: '',
-    livePhoto: null,
-  });
-
-  const [photoUri, setPhotoUri] = useState(null);
-  const [verificationStatus, setVerificationStatus] = useState('');
-  const [errors, setErrors] = useState({});
-
-  // **Request Permissions on Load**
-  useEffect(() => {
-    const requestPermissions = async () => {
-      const cameraPermission =
-        Platform.OS === 'android' ? PERMISSIONS.ANDROID.CAMERA : PERMISSIONS.IOS.CAMERA;
-      const storagePermission =
-        Platform.OS === 'android'
-          ? PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE
-          : PERMISSIONS.IOS.PHOTO_LIBRARY;
-
-      const cameraStatus = await check(cameraPermission);
-      if (cameraStatus !== RESULTS.GRANTED) await request(cameraPermission);
-
-      const storageStatus = await check(storagePermission);
-      if (storageStatus !== RESULTS.GRANTED) await request(storagePermission);
-    };
-
-    requestPermissions();
-  }, []);
-
-  const validateCarNumber = (carNumber) => {
-    const re = /^[A-Z]{2}\s\d{2}\s[A-Z]{2}\s\d{4}$/;
-    return re.test(String(carNumber));
-  };
-
-  const handleCarNumberChange = (text) => {
-    setFormData({ ...formData, carNumber: text });
-    setErrors({
-      ...errors,
-      carNumber: validateCarNumber(text) ? '' : 'Format: XX 00 XX 0000',
-    });
-  };
-
-  const handleLivePhotoCapture = async () => {
+const Profile = ({ userData, onLogout }) => {
+  const handleLogout = async () => {
     try {
-      const result = await launchCamera({ mediaType: 'photo', cameraType: 'front' });
+      const token = await AsyncStorage.getItem('accessToken');
 
-      if (result.didCancel) {
-        console.warn('User cancelled camera');
-      } else if (result.errorMessage) {
-        console.error('Camera error:', result.errorMessage);
-        Alert.alert('Camera Error', result.errorMessage);
-      } else if (result.assets && result.assets.length > 0) {
-        const photo = result.assets[0];
-        setFormData({ ...formData, livePhoto: { uri: photo.uri, type: photo.type, name: photo.fileName } });
-        setPhotoUri(photo.uri);
+      const response = await axios.post(
+        `${API_BASE_URL}users/logout`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
+        }
+      );
+
+      if (response.data.statusCode === 200) {
+        await AsyncStorage.removeItem('accessToken');
+        await AsyncStorage.removeItem('refreshToken');
+        Alert.alert('Success', 'Logout successful');
+        onLogout();
+      } else {
+        console.error('Logout failed:', response.data.message);
       }
     } catch (error) {
-      console.error('Camera launch error:', error);
-      Alert.alert('Error', 'Failed to open camera.');
+      console.error('Error logging out:', error);
     }
   };
 
-  const handleAadharUpload = async () => {
-    try {
-      const result = await DocumentPicker.pickSingle({ type: [DocumentPicker.types.images] });
-      setFormData({ ...formData, aadharCard: result });
-    } catch (err) {
-      if (DocumentPicker.isCancel(err)) {
-        console.warn('User cancelled document selection');
-      } else {
-        console.error('Document Picker error:', err);
-        Alert.alert('Error', 'Failed to select a document.');
-      }
-    }
-  };
-
-  const handleVerification = async () => {
-    if (!formData.carName || !formData.carNumber || !formData.aadharCard || !formData.livePhoto) {
-      setVerificationStatus('Please fill in all fields');
-      return;
-    }
-
-    const newData = new FormData();
-    newData.append('carName', formData.carName);
-    newData.append('carNumber', formData.carNumber);
-    newData.append('livePhoto', {
-      uri: formData.livePhoto.uri,
-      type: formData.livePhoto.type,
-      name: formData.livePhoto.name,
-    });
-
-    try {
-      const cookies = await CookieManager.get(API_BASE_URL);
-      const token = cookies?.accessToken?.value;
-
-      const res = await axios.post(`${API_BASE_URL}users/verifyDriver`, newData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (res.data.statusCode === 201) {
-        Alert.alert('Success', 'Profile verified successfully');
-        onVerify({
-          carName: formData.carName,
-          carNumber: formData.carNumber,
-          livePhoto: formData.livePhoto,
-        });
-      } else {
-        setVerificationStatus('Verification failed. Please try again.');
-      }
-    } catch (err) {
-      console.error('Verification error:', err);
-      setVerificationStatus('Verification failed. Please try again.');
-    }
-  };
+  if (!userData) {
+    return (
+      <View style={styles.centeredView}>
+        <Text style={styles.loginPrompt}>Login to view your Profile!</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.heading}>Verify Your Profile!</Text>
-      <Text style={styles.subHeading}>YOU'RE JUST ONE STEP AWAY!!</Text>
+      {/* Header Spacer */}
+      <View style={{ height: 80 }} />
 
-      <TouchableOpacity style={styles.photoBtn} onPress={handleLivePhotoCapture}>
-        <Text style={styles.photoBtnText}>Capture Live Photo</Text>
+      {/* Profile Info */}
+      <View style={styles.profileContainer}>
+        <View style={styles.profileHeader}>
+          <View>
+            <Text style={styles.name}>{userData.name}</Text>
+            <Text style={styles.subText}>Newcomer</Text>
+          </View>
+          <IconUser name="user" size={50} color="#334155" />
+        </View>
+
+        <TouchableOpacity style={styles.addPicRow}>
+          <IconAdd name="pluscircleo" size={22} color="#10b981" />
+          <Text style={styles.addPicText}> Add profile picture</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.divider} />
+
+      {/* Personal Details */}
+      <View style={styles.detailsContainer}>
+        <Text style={styles.sectionTitle}>Personal Details</Text>
+        <View style={styles.detailRow}>
+          <IconEmail name="email" size={20} color="#334155" />
+          <Text style={styles.detailText}> {userData.email}</Text>
+        </View>
+        <View style={styles.detailRow}>
+          <IconPhone name="phone" size={20} color="#334155" />
+          <Text style={styles.detailText}> {userData.contact}</Text>
+        </View>
+        <TouchableOpacity>
+          <Text style={styles.editLink}>Edit personal details</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.divider} />
+
+      {/* Logout Button */}
+      <TouchableOpacity onPress={handleLogout}>
+        <Text style={styles.logoutBtn}>Logout</Text>
       </TouchableOpacity>
-
-      {photoUri && <Image source={{ uri: photoUri }} style={styles.previewImage} />}
-
-      <TextInput
-        style={styles.input}
-        placeholder="Car Name"
-        value={formData.carName}
-        onChangeText={(text) => setFormData({ ...formData, carName: text })}
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Car Number (XX 00 XX 0000)"
-        value={formData.carNumber}
-        onChangeText={handleCarNumberChange}
-      />
-      {errors.carNumber ? <Text style={styles.error}>{errors.carNumber}</Text> : null}
-
-      <TouchableOpacity style={styles.uploadBtn} onPress={handleAadharUpload}>
-        <Text style={styles.uploadBtnText}>
-          {formData.aadharCard ? 'Aadhar Selected' : 'Upload Aadhar Card'}
-        </Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.verifyBtn} onPress={handleVerification}>
-        <Text style={styles.verifyBtnText}>Verify Profile</Text>
-      </TouchableOpacity>
-
-      {verificationStatus ? <Text style={styles.error}>{verificationStatus}</Text> : null}
     </View>
   );
 };
 
+export default Profile;
+
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
-    marginTop: 40,
+    flex: 1,
+    paddingHorizontal: 24,
+    backgroundColor: '#fff',
   },
-  heading: {
-    fontSize: 26,
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loginPrompt: {
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 8,
+    color: '#334155',
   },
-  subHeading: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#555',
+  profileContainer: {
+    marginTop: 20,
+  },
+  profileHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  name: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#334155',
+  },
+  subText: {
+    fontWeight: 'bold',
+    color: '#64748b',
+  },
+  addPicRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  addPicText: {
+    color: '#10b981',
+    fontWeight: 'bold',
+    fontSize: 16,
+    marginLeft: 10,
+  },
+  divider: {
+    marginVertical: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e2e8f0',
+  },
+  detailsContainer: {
     marginBottom: 20,
   },
-  input: {
-    borderWidth: 1,
-    borderColor: '#aaa',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 10,
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#334155',
+    marginBottom: 14,
   },
-  photoBtn: {
-    backgroundColor: '#2563eb',
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 10,
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
   },
-  photoBtnText: {
-    color: '#fff',
-    textAlign: 'center',
+  detailText: {
+    fontSize: 16,
+    color: '#334155',
+    marginLeft: 10,
   },
-  previewImage: {
-    width: 100,
-    height: 100,
-    marginBottom: 15,
-    borderRadius: 8,
-  },
-  uploadBtn: {
-    backgroundColor: '#10b981',
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 10,
-  },
-  uploadBtnText: {
-    color: '#fff',
-    textAlign: 'center',
-  },
-  verifyBtn: {
-    backgroundColor: '#4f46e5',
-    padding: 12,
-    borderRadius: 8,
+  editLink: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#10b981',
     marginTop: 10,
   },
-  verifyBtnText: {
-    color: '#fff',
-    textAlign: 'center',
+  logoutBtn: {
+    fontSize: 16,
     fontWeight: 'bold',
-  },
-  error: {
-    color: 'red',
-    marginBottom: 8,
+    color: '#10b981',
+    textAlign: 'center',
   },
 });
 
-export default Verification;
