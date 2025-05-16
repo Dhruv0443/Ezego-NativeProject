@@ -8,12 +8,12 @@ export const RidesProvider = ({ children }) => {
     const [bookedRides, setBookedRides] = useState([]);
 
     const bookRide = (ride) => {
-        setBookedRides((prevRides) => [...prevRides, ride]);
+        setBookedRides([...bookedRides, ride]);
     };
 
     const resetRides = () => {
         setBookedRides([]);
-    };
+    }
 
     return (
         <RidesContext.Provider value={{ bookedRides, bookRide, resetRides }}>

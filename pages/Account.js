@@ -1,263 +1,229 @@
+//Account.js
+import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
-import {
-    View,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    StyleSheet,
-    Image,
-    Alert,
-    ScrollView,
-} from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome'; // ✅ Correct Icon package
+import { View, Text, TextInput, TouchableOpacity, Image, Alert, ScrollView } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 const Account = ({ onLogin }) => {
-    const [isLogin, setIsLogin] = useState(true);
-    const [formData, setFormData] = useState({
-        name: '',
-        contact: '',
-        email: '',
-        password: '',
-    });
-    const [errors, setErrors] = useState({});
-    const [showPassword, setShowPassword] = useState(false);
+  const [isLogin, setIsLogin] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
+const navigation = useNavigation();
+  const [formData, setFormData] = useState({
+    name: '',
+    contact: '',
+    email: '',
+    password: '',
+  });
 
-    const togglePasswordVisibility = () => {
-        setShowPassword(!showPassword);
-    };
+  const [errors, setErrors] = useState({});
 
-    const handleLogin = async () => {
-        try {
-            // Dummy data for API response
-            const data = {
-                statusCode: 200,
-                data: {
-                    user: {
-                        email: formData.email,
-                        name: "John Doe",
-                        contact: "9876543210",
-                        isDriver: false,
-                        driverVerification: {
-                            carName: "Toyota Prius",
-                            carNumber: "XYZ123",
-                            livePhoto: "https://example.com/live-photo.jpg",
-                        },
-                        savedRides: [],
-                    },
-                    accessToken: "dummyAccessToken",
-                    refreshToken: "dummyRefreshToken",
-                }
-            };
+  const [dummyUsers, setDummyUsers] = useState([
+    {
+      name: 'Dhruv',
+      contact: '8265968128',
+      email: 'dhruv123@gmail.com',
+      password: 'Dhruv@1234',
+      isDriver: true,
+      driverVerification: {
+        carName: 'Honda City',
+        carNumber: 'HR26DK1234',
+        livePhoto: 'dummy_photo_1.jpg',
+      },
+      savedRides: [],
+    },
+    {
+      name: 'Rithika',
+      contact: '9012345678',
+      email: 'rithika123@gmail.com',
+      password: 'Rithika@1234',
+      isDriver: false,
+      driverVerification: null,
+      savedRides: [],
+    },
+    {
+      name: 'Jasjot',
+      contact: '9123456780',
+      email: 'jasjot123@gmail.com',
+      password: 'Jasjot@123',
+      isDriver: true,
+      driverVerification: {
+        carName: 'Swift Dzire',
+        carNumber: 'DL8CAF7890',
+        livePhoto: 'dummy_photo_2.jpg',
+      },
+      savedRides: [],
+    },
+  ]);
 
-            if (data.statusCode === 200) {
-                const userData = {
-                    email: data.data.user.email,
-                    name: data.data.user.name,
-                    contact: data.data.user.contact,
-                    isDriver: data.data.user.isDriver,
-                    carName: data.data.user.driverVerification?.carName || '',
-                    carNumber: data.data.user.driverVerification?.carNumber || '',
-                    livePhoto: data.data.user.driverVerification?.livePhoto || '',
-                    savedRides: data.data.user.savedRides || [],
-                };
+  const handleChange = (name, value) => {
+    setFormData(prev => ({ ...prev, [name]: value }));
 
-                Alert.alert('Success', 'Login successful');
-                onLogin(userData);
-            } else {
-                Alert.alert('Error', 'Error logging into account');
-            }
-        } catch (error) {
-            Alert.alert('Error', 'Network error');
-        }
-    };
+    if (!isLogin) {
+      const newErrors = { ...errors };
 
-    const handleSignup = async () => {
-        try {
-            Alert.alert('Success', 'Signup successful');
-        } catch (error) {
-            Alert.alert('Error', 'Network error');
-        }
-    };
+      switch (name) {
+        case 'email':
+          newErrors.email = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? '' : 'Invalid email';
+          break;
+        case 'contact':
+          newErrors.contact = /^[9876][0-9]{9}$/.test(value) ? '' : 'Invalid contact';
+          break;
+        case 'password':
+          newErrors.password = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/.test(value)
+            ? ''
+            : 'Weak password';
+          break;
+      }
 
-    const validateEmail = (email) => {
-        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return re.test(String(email).toLowerCase());
-    };
+      setErrors(newErrors);
+    }
+  };
 
-    const validateContact = (contact) => {
-        const re = /^[9876][0-9]{9}$/;
-        return re.test(String(contact));
-    };
-
-    const validatePassword = (password) => {
-        const re = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-        return re.test(password);
-    };
-
-    const handleChange = (name, value) => {
-        setFormData((prev) => ({ ...prev, [name]: value }));
-
-        if (!isLogin) {
-            let newErrors = { ...errors };
-            switch (name) {
-                case 'email':
-                    newErrors.email = validateEmail(value) ? '' : 'Invalid email';
-                    break;
-                case 'contact':
-                    newErrors.contact = validateContact(value) ? '' : 'Invalid contact number';
-                    break;
-                case 'password':
-                    newErrors.password = validatePassword(value) ? '' : 'Weak password';
-                    break;
-                default:
-                    break;
-            }
-            setErrors(newErrors);
-        }
-    };
-
-    return (
-        <ScrollView contentContainerStyle={styles.container}>
-            <Text style={styles.heading}>
-                {isLogin ? "Login" : "Sign Up"}
-            </Text>
-
-            {!isLogin && (
-                <TextInput
-                    style={styles.input}
-                    placeholder="Name"
-                    value={formData.name}
-                    onChangeText={(value) => handleChange('name', value)}
-                />
-            )}
-
-            <TextInput
-                style={styles.input}
-                placeholder="Email"
-                value={formData.email}
-                onChangeText={(value) => handleChange('email', value)}
-            />
-            {errors.email ? <Text style={styles.error}>{errors.email}</Text> : null}
-
-            {!isLogin && (
-                <>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Contact"
-                        keyboardType="phone-pad"
-                        value={formData.contact}
-                        onChangeText={(value) => handleChange('contact', value)}
-                    />
-                    {errors.contact ? <Text style={styles.error}>{errors.contact}</Text> : null}
-                </>
-            )}
-
-            <View style={styles.passwordContainer}>
-                <TextInput
-                    style={styles.passwordInput}
-                    placeholder="Password"
-                    secureTextEntry={!showPassword}
-                    value={formData.password}
-                    onChangeText={(value) => handleChange('password', value)}
-                />
-                <TouchableOpacity onPress={togglePasswordVisibility}>
-                    <Icon
-                        name={showPassword ? "eye-slash" : "eye"}
-                        size={22}
-                        color="gray"
-                    />
-                </TouchableOpacity>
-            </View>
-            {errors.password ? <Text style={styles.error}>{errors.password}</Text> : null}
-
-            <TouchableOpacity
-                onPress={isLogin ? handleLogin : handleSignup}
-                style={styles.button}
-            >
-                <Text style={styles.buttonText}>
-                    {isLogin ? "Login" : "Sign Up"}
-                </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={() => setIsLogin(!isLogin)}>
-                <Text style={styles.switchText}>
-                    {isLogin ? "Don't have an account? Sign up now!" : "Already have an account? Log in!"}
-                </Text>
-            </TouchableOpacity>
-
-            <Image
-                source={{ uri: "https://example.com/account-image.jpg" }}
-                style={styles.image}
-                resizeMode="contain"
-            />
-        </ScrollView>
+  const handleLogin = () => {
+    const matchedUser = dummyUsers.find(
+      user => user.email === formData.email && user.password === formData.password
     );
+
+    if (matchedUser) {
+      const userData = {
+        email: matchedUser.email,
+        name: matchedUser.name,
+        contact: matchedUser.contact,
+        isDriver: matchedUser.isDriver,
+        carName: matchedUser.driverVerification?.carName,
+        carNumber: matchedUser.driverVerification?.carNumber,
+        livePhoto: matchedUser.driverVerification?.livePhoto,
+        savedRides: matchedUser.savedRides,
+      };
+      onLogin(userData);
+      Alert.alert('Login Successful');
+      navigation.navigate('Home')
+    } else {
+      Alert.alert('Login failed', 'Invalid email or password');
+    }
+  };
+
+  const handleSignup = () => {
+    const exists = dummyUsers.some(user => user.email === formData.email);
+    if (exists) {
+      Alert.alert('Signup failed', 'Email already exists');
+      return;
+    }
+
+    const newUser = {
+      name: formData.name,
+      contact: formData.contact,
+      email: formData.email,
+      password: formData.password,
+      isDriver: false,
+      driverVerification: null,
+      savedRides: [],
+    };
+
+    setDummyUsers(prev => [...prev, newUser]);
+    Alert.alert('Signup successful');
+    setIsLogin(true); // Go to login screen after signup
+    navigation.navigate("Home")
+  };
+
+  return (
+    <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 20 }}>
+      <View style={{ alignItems: 'center', marginBottom: 30 }}>
+        <Text style={{ fontSize: 26, fontWeight: 'bold', color: '#1e293b', textAlign: 'center' }}>
+          Share the Ride!{'\n'}Share the Journey!
+        </Text>
+        <Image
+          source={require('../assets/acc.jpg')}
+          style={{ width: 280, height: 180, marginTop: 20 }}
+          resizeMode="contain"
+        />
+      </View>
+
+      {!isLogin && (
+        <TextInput
+          placeholder="Name"
+          value={formData.name}
+          onChangeText={text => handleChange('name', text)}
+          style={styles.input}
+        />
+      )}
+
+      {!isLogin && (
+        <>
+          <TextInput
+            placeholder="Contact"
+            value={formData.contact}
+            keyboardType="phone-pad"
+            onChangeText={text => handleChange('contact', text)}
+            style={styles.input}
+          />
+          {errors.contact ? <Text style={styles.error}>{errors.contact}</Text> : null}
+        </>
+      )}
+
+      <TextInput
+        placeholder="Email"
+        value={formData.email}
+        keyboardType="email-address"
+        autoCapitalize="none"
+        onChangeText={text => handleChange('email', text)}
+        style={styles.input}
+      />
+      {!isLogin && errors.email ? <Text style={styles.error}>{errors.email}</Text> : null}
+
+      <View style={styles.passwordContainer}>
+        <TextInput
+          placeholder="Password"
+          secureTextEntry={!showPassword}
+          value={formData.password}
+          onChangeText={text => handleChange('password', text)}
+          style={[styles.input, { flex: 1 }]}
+        />
+        <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={{ marginLeft: 10 }}>
+          <Icon name={showPassword ? 'eye-slash' : 'eye'} size={20} color="gray" />
+        </TouchableOpacity>
+      </View>
+      {!isLogin && errors.password ? <Text style={styles.error}>{errors.password}</Text> : null}
+
+      <TouchableOpacity
+        onPress={isLogin ? handleLogin : handleSignup}
+        style={[styles.button, { backgroundColor: isLogin ? '#2563eb' : '#059669' }]}
+      >
+        <Text style={{ color: '#fff', fontWeight: 'bold' }}>{isLogin ? 'Login' : 'Sign Up'}</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity onPress={() => setIsLogin(!isLogin)} style={{ marginTop: 20 }}>
+        <Text style={{ color: '#2563eb', textAlign: 'center' }}>
+          {isLogin ? "Don't have an account? Sign up now!" : 'Already have an account? Log in!'}
+        </Text>
+      </TouchableOpacity>
+    </ScrollView>
+  );
 };
 
-const styles = StyleSheet.create({
-    container: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 20,
-        backgroundColor: '#f9f9f9',
-    },
-    heading: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginBottom: 20,
-    },
-    input: {
-        width: '100%',
-        borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 8,
-        padding: 12,
-        marginBottom: 10,
-        backgroundColor: '#fff',
-    },
-    error: {
-        color: 'red',
-        fontSize: 12,
-        marginBottom: 8,
-    },
-    passwordContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        width: '100%',
-        borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 8,
-        paddingHorizontal: 12,
-        backgroundColor: '#fff',
-        marginBottom: 10,
-    },
-    passwordInput: {
-        flex: 1,
-        paddingVertical: 12,
-    },
-    button: {
-        backgroundColor: '#007BFF',
-        paddingVertical: 14,
-        borderRadius: 8,
-        width: '100%',
-        alignItems: 'center',
-        marginBottom: 10,
-    },
-    buttonText: {
-        color: '#fff',
-        fontWeight: 'bold',
-    },
-    switchText: {
-        color: '#007BFF',
-        marginTop: 12,
-        textDecorationLine: 'underline',
-    },
-    image: {
-        width: 250,
-        height: 250,
-        marginTop: 20,
-    },
-});
+const styles = {
+  input: {
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  button: {
+    padding: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  error: {
+    color: 'red',
+    marginBottom: 10,
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+};
 
 export default Account;

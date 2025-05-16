@@ -1,290 +1,463 @@
-import React, { useEffect, useState, useRef } from "react";
-import Navbar from "../components/Navbar";
-// import { useNavigate } from "react-router-dom";
-import API_BASE_URL from "../ApiBaseURL";
-import Cookies from "js-cookie";
+// import React, { useState } from 'react';
+// import {
+//   View,
+//   Text,
+//   TextInput,
+//   Button,
+//   Image,
+//   TouchableOpacity,
+//   StyleSheet,
+//   Alert,
+// } from 'react-native';
+// import { launchCamera } from 'react-native-image-picker';
+// import DocumentPicker from 'react-native-document-picker';
+// import axios from 'axios';
+// import API_BASE_URL from '../ApiBaseURL';
+// import CookieManager from '@react-native-cookies/cookies'; // For native cookies
+
+// const Verification = ({ onVerify }) => {
+//   const [formData, setFormData] = useState({
+//     aadharCard: null,
+//     carName: '',
+//     carNumber: '',
+//     livePhoto: null,
+//   });
+
+//   const [photoUri, setPhotoUri] = useState(null);
+//   const [verificationStatus, setVerificationStatus] = useState('');
+//   const [errors, setErrors] = useState({});
+
+//   const validateCarNumber = (carNumber) => {
+//     const re = /^[A-Z]{2}\s\d{2}\s[A-Z]{2}\s\d{4}$/;
+//     return re.test(String(carNumber));
+//   };
+
+//   const handleCarNumberChange = (text) => {
+//     setFormData({ ...formData, carNumber: text });
+//     setErrors({
+//       ...errors,
+//       carNumber: validateCarNumber(text) ? '' : 'Format: XX 00 XX 0000',
+//     });
+//   };
+
+//   const handleLivePhotoCapture = async () => {
+//     const result = await launchCamera({ mediaType: 'photo', cameraType: 'front' });
+
+//     if (!result.didCancel && result.assets && result.assets.length > 0) {
+//       const photo = result.assets[0];
+//       setFormData({ ...formData, livePhoto: { uri: photo.uri, type: photo.type, name: photo.fileName } });
+//       setPhotoUri(photo.uri);
+//     }
+//   };
+
+//   const handleAadharUpload = async () => {
+//     try {
+//       const result = await DocumentPicker.pickSingle({ type: [DocumentPicker.types.images] });
+//       setFormData({ ...formData, aadharCard: result });
+//     } catch (err) {
+//       if (!DocumentPicker.isCancel(err)) console.warn(err);
+//     }
+//   };
+
+//   const handleVerification = async () => {
+//     if (!formData.carName || !formData.carNumber || !formData.aadharCard || !formData.livePhoto) {
+//       setVerificationStatus('Please fill in all fields');
+//       return;
+//     }
+
+//     const newData = new FormData();
+//     newData.append('carName', formData.carName);
+//     newData.append('carNumber', formData.carNumber);
+//     newData.append('livePhoto', {
+//       uri: formData.livePhoto.uri,
+//       type: formData.livePhoto.type,
+//       name: formData.livePhoto.name,
+//     });
+
+//     try {
+//       const cookies = await CookieManager.get(API_BASE_URL);
+//       const token = cookies?.accessToken?.value;
+
+//       const res = await axios.post(`${API_BASE_URL}users/verifyDriver`, newData, {
+//         headers: {
+//           'Content-Type': 'multipart/form-data',
+//           Authorization: `Bearer ${token}`,
+//         },
+//       });
+
+//       if (res.data.statusCode === 201) {
+//         Alert.alert('Success', 'Profile verified successfully');
+//         onVerify({
+//           carName: formData.carName,
+//           carNumber: formData.carNumber,
+//           livePhoto: formData.livePhoto,
+//         });
+//       } else {
+//         setVerificationStatus('Verification failed. Please try again.');
+//       }
+//     } catch (err) {
+//       console.error('Verification error:', err);
+//       setVerificationStatus('Verification failed. Please try again.');
+//     }
+//   };
+
+//   return (
+//     <View style={styles.container}>
+//       <Text style={styles.heading}>Verify Your Profile!</Text>
+//       <Text style={styles.subHeading}>YOU'RE JUST ONE STEP AWAY!!</Text>
+
+//       <TouchableOpacity style={styles.photoBtn} onPress={handleLivePhotoCapture}>
+//         <Text style={styles.photoBtnText}>Capture Live Photo</Text>
+//       </TouchableOpacity>
+
+//       {photoUri && (
+//         <Image source={{ uri: photoUri }} style={styles.previewImage} />
+//       )}
+
+//       <TextInput
+//         style={styles.input}
+//         placeholder="Car Name"
+//         value={formData.carName}
+//         onChangeText={(text) => setFormData({ ...formData, carName: text })}
+//       />
+
+//       <TextInput
+//         style={styles.input}
+//         placeholder="Car Number (XX 00 XX 0000)"
+//         value={formData.carNumber}
+//         onChangeText={handleCarNumberChange}
+//       />
+//       {errors.carNumber ? <Text style={styles.error}>{errors.carNumber}</Text> : null}
+
+//       <TouchableOpacity style={styles.uploadBtn} onPress={handleAadharUpload}>
+//         <Text style={styles.uploadBtnText}>
+//           {formData.aadharCard ? 'Aadhar Selected' : 'Upload Aadhar Card'}
+//         </Text>
+//       </TouchableOpacity>
+
+//       <TouchableOpacity style={styles.verifyBtn} onPress={handleVerification}>
+//         <Text style={styles.verifyBtnText}>Verify Profile</Text>
+//       </TouchableOpacity>
+
+//       {verificationStatus ? <Text style={styles.error}>{verificationStatus}</Text> : null}
+//     </View>
+//   );
+// };
+
+// const styles = StyleSheet.create({
+//   container: {
+//     padding: 20,
+//     marginTop: 40,
+//   },
+//   heading: {
+//     fontSize: 26,
+//     fontWeight: 'bold',
+//     color: '#333',
+//     marginBottom: 8,
+//   },
+//   subHeading: {
+//     fontSize: 14,
+//     fontWeight: '600',
+//     color: '#555',
+//     marginBottom: 20,
+//   },
+//   input: {
+//     borderWidth: 1,
+//     borderColor: '#aaa',
+//     borderRadius: 8,
+//     padding: 12,
+//     marginBottom: 10,
+//   },
+//   photoBtn: {
+//     backgroundColor: '#2563eb',
+//     padding: 10,
+//     borderRadius: 8,
+//     marginBottom: 10,
+//   },
+//   photoBtnText: {
+//     color: '#fff',
+//     textAlign: 'center',
+//   },
+//   previewImage: {
+//     width: 100,
+//     height: 100,
+//     marginBottom: 15,
+//     borderRadius: 8,
+//   },
+//   uploadBtn: {
+//     backgroundColor: '#10b981',
+//     padding: 10,
+//     borderRadius: 8,
+//     marginBottom: 10,
+//   },
+//   uploadBtnText: {
+//     color: '#fff',
+//     textAlign: 'center',
+//   },
+//   verifyBtn: {
+//     backgroundColor: '#4f46e5',
+//     padding: 12,
+//     borderRadius: 8,
+//     marginTop: 10,
+//   },
+//   verifyBtnText: {
+//     color: '#fff',
+//     textAlign: 'center',
+//     fontWeight: 'bold',
+//   },
+//   error: {
+//     color: 'red',
+//     marginBottom: 8,
+//   },
+// });
+
+// export default Verification;
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  Platform,
+} from 'react-native';
+import { launchCamera } from 'react-native-image-picker';
+import DocumentPicker from 'react-native-document-picker';
+import axios from 'axios';
+import API_BASE_URL from '../ApiBaseURL';
+import CookieManager from '@react-native-cookies/cookies';
+import { request, PERMISSIONS, check, RESULTS } from 'react-native-permissions'; // Permissions Handling
 
 const Verification = ({ onVerify }) => {
-  // const navigate = useNavigate();
   const [formData, setFormData] = useState({
     aadharCard: null,
-    carName: "",
-    carNumber: "",
+    carName: '',
+    carNumber: '',
     livePhoto: null,
   });
 
-  const [verificationStatus, setVerificationStatus] = useState("");
-  const [liveCaptureInProgress, setLiveCaptureInProgress] = useState(false);
-  const [showCapturedPhoto, setShowCapturedPhoto] = useState(null);
-  const [photoSaved, setPhotoSaved] = useState(false);
-  const videoRef = useRef(null);
+  const [photoUri, setPhotoUri] = useState(null);
+  const [verificationStatus, setVerificationStatus] = useState('');
+  const [errors, setErrors] = useState({});
 
-  const handleVerification = async () => {
-    if (
-      !formData.carName ||
-      !formData.carNumber ||
-      !formData.aadharCard ||
-      !formData.livePhoto
-    ) {
-      setVerificationStatus("Please fill in all the fields");
-      return;
-    }
+  // **Request Permissions on Load**
+  useEffect(() => {
+    const requestPermissions = async () => {
+      const cameraPermission =
+        Platform.OS === 'android' ? PERMISSIONS.ANDROID.CAMERA : PERMISSIONS.IOS.CAMERA;
+      const storagePermission =
+        Platform.OS === 'android'
+          ? PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE
+          : PERMISSIONS.IOS.PHOTO_LIBRARY;
 
-    const details = {
-      carName: formData.carName,
-      carNumber: formData.carNumber,
-      livePhoto: formData.livePhoto,
+      const cameraStatus = await check(cameraPermission);
+      if (cameraStatus !== RESULTS.GRANTED) await request(cameraPermission);
+
+      const storageStatus = await check(storagePermission);
+      if (storageStatus !== RESULTS.GRANTED) await request(storagePermission);
     };
 
-    const newData = new FormData();
-    newData.append("carName", formData.carName);
-    newData.append("carNumber", formData.carNumber);
-    newData.append("livePhoto", formData.livePhoto);
+    requestPermissions();
+  }, []);
 
-
-    try {
-      const response = await fetch(`${API_BASE_URL}users/verifyDriver`, {
-        headers: {Authorization: `Bearer ${Cookies.get("accessToken")}`},
-        method: "POST",
-        body: newData,
-        credentials: "include",
-      });
-
-      const data = await response.json();
-
-      if (data.statusCode === 201) {
-        alert("Profile verified successfully.");
-        onVerify(details);
-        //navigate("/offer");
-      } else {
-        setVerificationStatus("Verification failed. Please try again.");
-      }
-    } catch (error) {
-      console.error("Verification failed:", error);
-      setVerificationStatus("Verification failed. Please try again.");
-    }
+  const validateCarNumber = (carNumber) => {
+    const re = /^[A-Z]{2}\s\d{2}\s[A-Z]{2}\s\d{4}$/;
+    return re.test(String(carNumber));
   };
 
-  const streamRef = useRef(null);
+  const handleCarNumberChange = (text) => {
+    setFormData({ ...formData, carNumber: text });
+    setErrors({
+      ...errors,
+      carNumber: validateCarNumber(text) ? '' : 'Format: XX 00 XX 0000',
+    });
+  };
 
   const handleLivePhotoCapture = async () => {
     try {
-      const constraints = {
-        video: true,
-      };
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      videoRef.current.srcObject = stream;
-      streamRef.current = stream;
-      setLiveCaptureInProgress(true);
-      setShowCapturedPhoto(null);
+      const result = await launchCamera({ mediaType: 'photo', cameraType: 'front' });
+
+      if (result.didCancel) {
+        console.warn('User cancelled camera');
+      } else if (result.errorMessage) {
+        console.error('Camera error:', result.errorMessage);
+        Alert.alert('Camera Error', result.errorMessage);
+      } else if (result.assets && result.assets.length > 0) {
+        const photo = result.assets[0];
+        setFormData({ ...formData, livePhoto: { uri: photo.uri, type: photo.type, name: photo.fileName } });
+        setPhotoUri(photo.uri);
+      }
     } catch (error) {
-      console.error("Live photo capture failed:", error);
+      console.error('Camera launch error:', error);
+      Alert.alert('Error', 'Failed to open camera.');
     }
   };
 
-  const handleCaptureClick = () => {
-    const video = videoRef.current;
-    const canvas = document.createElement("canvas");
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    const ctx = canvas.getContext("2d");
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    canvas.toBlob((blob) => {
-      const photoURL = URL.createObjectURL(blob);
-      setFormData({ ...formData, livePhoto: blob });
-      setShowCapturedPhoto(photoURL);
-    }, "image/jpeg");
-    setLiveCaptureInProgress(false);
-    //setShowCapturedPhoto(true);
-    setPhotoSaved(false);
-
-    if (streamRef.current) {
-      const tracks = streamRef.current.getTracks();
-      tracks.forEach(track => track.stop());
+  const handleAadharUpload = async () => {
+    try {
+      const result = await DocumentPicker.pickSingle({ type: [DocumentPicker.types.images] });
+      setFormData({ ...formData, aadharCard: result });
+    } catch (err) {
+      if (DocumentPicker.isCancel(err)) {
+        console.warn('User cancelled document selection');
+      } else {
+        console.error('Document Picker error:', err);
+        Alert.alert('Error', 'Failed to select a document.');
+      }
     }
   };
 
-useEffect(() => {
-  return () => {
-    if (streamRef.current) {
-      const tracks = streamRef.current.getTracks();
-      tracks.forEach(track => track.stop());
+  const handleVerification = async () => {
+    if (!formData.carName || !formData.carNumber || !formData.aadharCard || !formData.livePhoto) {
+      setVerificationStatus('Please fill in all fields');
+      return;
+    }
+
+    const newData = new FormData();
+    newData.append('carName', formData.carName);
+    newData.append('carNumber', formData.carNumber);
+    newData.append('livePhoto', {
+      uri: formData.livePhoto.uri,
+      type: formData.livePhoto.type,
+      name: formData.livePhoto.name,
+    });
+
+    try {
+      const cookies = await CookieManager.get(API_BASE_URL);
+      const token = cookies?.accessToken?.value;
+
+      const res = await axios.post(`${API_BASE_URL}users/verifyDriver`, newData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (res.data.statusCode === 201) {
+        Alert.alert('Success', 'Profile verified successfully');
+        onVerify({
+          carName: formData.carName,
+          carNumber: formData.carNumber,
+          livePhoto: formData.livePhoto,
+        });
+      } else {
+        setVerificationStatus('Verification failed. Please try again.');
+      }
+    } catch (err) {
+      console.error('Verification error:', err);
+      setVerificationStatus('Verification failed. Please try again.');
     }
   };
-}, []);
-
-  const handleRetakeClick = () => {
-    if (showCapturedPhoto) {
-      URL.revokeObjectURL(showCapturedPhoto);
-    }
-    setFormData({ ...formData, livePhoto: null });
-    setShowCapturedPhoto(null);
-    setLiveCaptureInProgress(true);
-    setPhotoSaved(false);
-  };
-
-  const handleAadharCardUpload = (e) => {
-    const file = e.target.files[0];
-    setFormData({ ...formData, aadharCard: file });
-  };
-
-  function validateCarNumber(carNumber) {
-    const re = /^[A-Z]{2}\s\d{2}\s[A-Z]{2}\s\d{4}$/;
-    return re.test(String(carNumber));
-  }
-
-  const [errors, setErrors] = useState({});
-
-  const handleCarNumberChange = (e) => {
-    setFormData({ ...formData, carNumber: e.target.value });
-
-    let newErrors = { ...errors };
-    newErrors.carNumber = validateCarNumber(e.target.value)
-      ? ""
-      : "Car number should be XX 00 XX 0000.";
-    setErrors(newErrors);
-  }
 
   return (
-    <div className="flex flex-col mb-20" id="verify">
-      <div className="flex flex-col md:flex-row mt-20 md:ml-10">
-        <div className="flex-col">
-          <h1 className="text-3xl font-bold md:mt-10 mt-10 ml-5 md:ml-12 text-slate-800">
-            Verify Your Profile!
-          </h1>
-          <h2 className="text-md font-bold md:mt-2 ml-5 md:ml-12 text-slate-800">
-            YOU'RE JUST ONE STEP AWAY!!
-          </h2>
-          <img
-            src="assets/ver.png"
-            alt="logo"
-            className="w-auto h-45 md:w-auto md:h-80 mt-4 md:mt-8"
-          />
-        </div>
-        <div className="w-3/4 md:w-1/4 md:mt-10 flex flex-col md:ml-20 ml-8 mt-5">
-          <div className="verification-details mx-auto">
-            <h2 className="text-xl mb-4 text-white bg-green-500 py-2 px-4 text-center font-bold rounded">
-              Verification Details
-            </h2>
+    <View style={styles.container}>
+      <Text style={styles.heading}>Verify Your Profile!</Text>
+      <Text style={styles.subHeading}>YOU'RE JUST ONE STEP AWAY!!</Text>
 
-            <div className="credential py-2">
-              <label className="font-semibold">Live Photo:&nbsp;&nbsp;</label>
-              {liveCaptureInProgress ? (
-                <div className="flex space-x-2 mt-2">
-                  <button
-                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                    onClick={handleCaptureClick}
-                  >
-                    Capture
-                  </button>
-                  <button
-                    className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-                    onClick={handleLivePhotoCapture}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              ) : (
-                <button
-                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-2"
-                  onClick={handleLivePhotoCapture}
-                >
-                  Start Live Capture
-                </button>
-              )}
-              <video
-                ref={videoRef}
-                autoPlay
-                muted
-                style={{ display: "block", marginTop: "10px" }}
-                className="mt-2 rounded"
-              />
-            </div>
+      <TouchableOpacity style={styles.photoBtn} onPress={handleLivePhotoCapture}>
+        <Text style={styles.photoBtnText}>Capture Live Photo</Text>
+      </TouchableOpacity>
 
-            {showCapturedPhoto && (
-              <div className="credential py-2">
-                <label className="font-semibold">Live Photo Preview:</label>
-                <img
-                  src={showCapturedPhoto}
-                  alt="Captured Photo"
-                  className="block mt-2 w-24 h-auto rounded"
-                />
-                <button
-                  className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded mt-2"
-                  onClick={handleRetakeClick}
-                >
-                  Retake
-                </button>
-                {photoSaved && (
-                  <span className="text-green-500 ml-2">✔ Photo Saved</span>
-                )}
-              </div>
-            )}
+      {photoUri && <Image source={{ uri: photoUri }} style={styles.previewImage} />}
 
-            <div className="credential py-2">
-              <label htmlFor="carName" className="font-semibold">
-                Car Name:
-              </label>
-              <input
-                type="text"
-                id="carName"
-                placeholder="Your Car Name"
-                value={formData.carName}
-                onChange={(e) =>
-                  setFormData({ ...formData, carName: e.target.value })
-                }
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              />
-            </div>
+      <TextInput
+        style={styles.input}
+        placeholder="Car Name"
+        value={formData.carName}
+        onChangeText={(text) => setFormData({ ...formData, carName: text })}
+      />
 
-            <div className="credential py-2">
-              <label htmlFor="carNumber" className="font-semibold">
-                Car Number:
-              </label>
-              <input
-                type="text"
-                id="carNumber"
-                placeholder="Your Car Number"
-                value={formData.carNumber}
-                onChange={handleCarNumberChange}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              />
-              {errors.carNumber && (
-                <p style={{ color: "red", fontSize: "14px", width: "full" }}>
-                  {errors.carNumber}
-                </p>
-              )}
-            </div>
+      <TextInput
+        style={styles.input}
+        placeholder="Car Number (XX 00 XX 0000)"
+        value={formData.carNumber}
+        onChangeText={handleCarNumberChange}
+      />
+      {errors.carNumber ? <Text style={styles.error}>{errors.carNumber}</Text> : null}
 
-            <div className="credential py-2">
-              <label htmlFor="aadharCard" className="font-semibold">
-                Aadhar Card:
-              </label>
-              <input
-                type="file"
-                id="aadharCard"
-                accept="image/*"
-                onChange={handleAadharCardUpload}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md cursor-pointer shadow-sm text-gray-700"
-              />
-            </div>
+      <TouchableOpacity style={styles.uploadBtn} onPress={handleAadharUpload}>
+        <Text style={styles.uploadBtnText}>
+          {formData.aadharCard ? 'Aadhar Selected' : 'Upload Aadhar Card'}
+        </Text>
+      </TouchableOpacity>
 
-            <button
-              className="verification-button bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4"
-              onClick={handleVerification}
-            >
-              Verify Profile
-            </button>
-            {verificationStatus && (
-              <p className="mt-2" style={{ color: "red" }}>
-                {verificationStatus}
-              </p>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
+      <TouchableOpacity style={styles.verifyBtn} onPress={handleVerification}>
+        <Text style={styles.verifyBtnText}>Verify Profile</Text>
+      </TouchableOpacity>
+
+      {verificationStatus ? <Text style={styles.error}>{verificationStatus}</Text> : null}
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 20,
+    marginTop: 40,
+  },
+  heading: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 8,
+  },
+  subHeading: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#555',
+    marginBottom: 20,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#aaa',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 10,
+  },
+  photoBtn: {
+    backgroundColor: '#2563eb',
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  photoBtnText: {
+    color: '#fff',
+    textAlign: 'center',
+  },
+  previewImage: {
+    width: 100,
+    height: 100,
+    marginBottom: 15,
+    borderRadius: 8,
+  },
+  uploadBtn: {
+    backgroundColor: '#10b981',
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  uploadBtnText: {
+    color: '#fff',
+    textAlign: 'center',
+  },
+  verifyBtn: {
+    backgroundColor: '#4f46e5',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 10,
+  },
+  verifyBtnText: {
+    color: '#fff',
+    textAlign: 'center',
+    fontWeight: 'bold',
+  },
+  error: {
+    color: 'red',
+    marginBottom: 8,
+  },
+});
 
 export default Verification;

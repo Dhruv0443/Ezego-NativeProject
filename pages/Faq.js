@@ -75,6 +75,7 @@ const styles = StyleSheet.create({
         textAlign: "center",
         color: "#1f2937", // Deep gray for a clean and professional look
         marginBottom: 20,
+        marginTop:20,
     },
     faqItem: {
         marginBottom: 20,

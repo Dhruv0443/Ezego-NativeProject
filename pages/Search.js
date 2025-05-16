@@ -1,215 +1,249 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, FlatList, TextInput, Image, StyleSheet, ScrollView, Alert } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import API_BASE_URL from "../ApiBaseURL";
-import SearchBar from "../components/SearchBar"; // Ensure this component is adapted for React Native
-import RideDetails from "../components/RideDetails"; // Ensure this component is adapted for React Native
+//Search.js (page)
+import React, { useState, useEffect } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import axios from 'axios';
+import CookieManager from '@react-native-cookies/cookies';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import SearchBar from '../components/SearchBar';
+import RideDetails from '../components/RideDetails';
+import API_BASE_URL from '../ApiBaseURL';
 
-const Search = () => {
-    const [rides, setRides] = useState([]);
-    const [searchPerformed, setSearchPerformed] = useState(false);
-    const [sortCriteria, setSortCriteria] = useState('');
-    const [originalRides, setOriginalRides] = useState([]);
+function Search() {
+  const [rides, setRides] = useState([]);
+  const [searchPerformed, setSearchPerformed] = useState(false);
+  const [sortCriteria, setSortCriteria] = useState('');
+  const [originalRides, setOriginalRides] = useState([]);
 
-    const searchRides = async (rideDetails) => {
-        setSearchPerformed(true);
+  const searchRides = async (rideDetails) => {
+    setSearchPerformed(true);
+    try {
+      const cookie = await CookieManager.get('http://localhost');
+      const token = cookie.accessToken?.value;
 
-        try {
-            const token = await AsyncStorage.getItem("accessToken");
-            const response = await fetch(`${API_BASE_URL}rides/searchRides`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify(rideDetails),
-                credentials: "include",
-            });
-            const data = await response.json();
-
-            if (response.ok) {
-                setRides(data.data);
-                setOriginalRides([...data.data]);
-            } else {
-                Alert.alert("Error", `Failed to fetch rides: ${data.message}`);
-            }
-        } catch (error) {
-            console.error("Error fetching rides:", error);
-            Alert.alert("Error", "An error occurred while fetching rides.");
+      const response = await axios.post(
+        `${API_BASE_URL}rides/searchRides`,
+        rideDetails,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          withCredentials: true,
         }
-    };
+      );
 
-    const formatDate = (dateString) => {
-        const date = new Date(dateString);
-        let day = date.getDate().toString().padStart(2, '0');
-        let month = (date.getMonth() + 1).toString().padStart(2, '0');
-        let year = date.getFullYear().toString();
-        return `${day}-${month}-${year}`;
-    };
+      const data = response.data;
 
-    const sortRides = (criteria) => {
-        let sortedRides = [...rides];
-        switch (criteria) {
-            case "earliest":
-                sortedRides.sort((a, b) => new Date(`${a.date}T${a.time}`) - new Date(`${b.date}T${b.time}`));
-                break;
-            case "priceLowHigh":
-                sortedRides.sort((a, b) => a.price - b.price);
-                break;
-            case "priceHighLow":
-                sortedRides.sort((a, b) => b.price - a.price);
-                break;
-            case "moreSeats":
-                sortedRides.sort((a, b) => b.passengers - a.passengers);
-                break;
-            default:
-                break;
-        }
-        setRides(sortedRides);
-    };
+      if (data.statusCode === 200) {
+        setRides(data.data);
+        setOriginalRides([...data.data]);
+      } else {
+        console.error('Failed to fetch rides:', data.message);
+      }
+    } catch (error) {
+      console.error('Error fetching rides:', error);
+    }
+  };
 
-    useEffect(() => {
-        if (sortCriteria) {
-            sortRides(sortCriteria);
-        }
-    }, [sortCriteria]);
+  function formatDate(dateString) {
+    const date = new Date(dateString);
+    let day = date.getDate().toString().padStart(2, '0');
+    let month = (date.getMonth() + 1).toString().padStart(2, '0');
+    let year = date.getFullYear().toString();
+    return `${day}-${month}-${year}`;
+  }
 
-    const clearAllSorts = () => {
-        setRides([...originalRides]);
-    };
+  const sortRides = (criteria) => {
+    let sortedRides = [...rides];
+    switch (criteria) {
+      case 'earliest':
+        sortedRides.sort((a, b) => new Date(`${a.date}T${a.time}`) - new Date(`${b.date}T${b.time}`));
+        break;
+      case 'priceLowHigh':
+        sortedRides.sort((a, b) => a.price - b.price);
+        break;
+      case 'priceHighLow':
+        sortedRides.sort((a, b) => b.price - a.price);
+        break;
+      case 'moreSeats':
+        sortedRides.sort((a, b) => b.passengers - a.passengers);
+        break;
+      default:
+        break;
+    }
+    setRides(sortedRides);
+  };
 
-    return (
-        <ScrollView contentContainerStyle={styles.container}>
-            <Text style={styles.title}>Find a Ride</Text>
-            <SearchBar searchRides={searchRides} />
-            {searchPerformed ? (
-                <View style={styles.resultsContainer}>
-                    <View style={styles.sortContainer}>
-                        {rides.length > 0 && (
-                            <>
-                                <View style={styles.sortHeader}>
-                                    <Text style={styles.sortTitle}>Sort by:</Text>
-                                    <TouchableOpacity onPress={clearAllSorts}>
-                                        <Text style={styles.clearText}>Clear all</Text>
-                                    </TouchableOpacity>
-                                </View>
-                                <View style={styles.sortOptions}>
-                                    <TouchableOpacity onPress={() => setSortCriteria("earliest")} style={styles.sortOption}>
-                                        <Text style={styles.sortText}>Earliest Departure</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity onPress={() => setSortCriteria("priceLowHigh")} style={styles.sortOption}>
-                                        <Text style={styles.sortText}>Price: Low to High</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity onPress={() => setSortCriteria("priceHighLow")} style={styles.sortOption}>
-                                        <Text style={styles.sortText}>Price: High to Low</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity onPress={() => setSortCriteria("moreSeats")} style={styles.sortOption}>
-                                        <Text style={styles.sortText}>More Seats Available</Text>
-                                    </TouchableOpacity>
-                                </View>
-                            </>
-                        )}
-                    </View>
-                    <View style={styles.rideList}>
-                        {rides.length === 0 ? (
-                            <View style={styles.emptyState}>
-                                <Text style={styles.emptyText}>No rides found! Search for a different ride!</Text>
-                                <Image
-                                    source={require("../assets/img4.png")} // Ensure the image path is correct
-                                    style={styles.emptyImage}
-                                />
-                            </View>
-                        ) : (
-                            <>
-                                <Text style={styles.date}>{formatDate(rides[0].date)}</Text>
-                                <Text style={styles.availableText}>
-                                    {rides.length} {rides.length === 1 ? "ride available" : "rides available"}
-                                </Text>
-                                <FlatList
-                                    data={rides}
-                                    keyExtractor={(item) => item._id}
-                                    renderItem={({ item }) => <RideDetails ride={item} />}
-                                />
-                            </>
-                        )}
-                    </View>
+  useEffect(() => {
+    if (sortCriteria) {
+      sortRides(sortCriteria);
+    }
+  }, [sortCriteria]);
+
+  const clearAllSorts = () => {
+    setRides([...originalRides]);
+  };
+
+  return (
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.title}>Find a Ride</Text>
+      <View style={styles.searchBar}><SearchBar searchRides={searchRides} /></View>
+      {searchPerformed && (
+        <View style={styles.bodyWrapper}>
+          <View style={styles.sortSection}>
+            {rides.length > 0 && (
+              <View>
+                <View style={styles.sortHeader}>
+                  <Text style={styles.sortTitle}>Sort by:</Text>
+                  <TouchableOpacity onPress={clearAllSorts}>
+                    <Text style={styles.clearText}>Clear all</Text>
+                  </TouchableOpacity>
                 </View>
-            ) : null}
-        </ScrollView>
-    );
-};
+                {[
+                  { label: 'Earliest Departure', value: 'earliest', icon: <Ionicons name="time-outline" size={20} /> },
+                  { label: 'Price: Low to High', value: 'priceLowHigh', icon: <MaterialCommunityIcons name="sort-ascending" size={20} /> },
+                  { label: 'Price: High to Low', value: 'priceHighLow', icon: <MaterialCommunityIcons name="sort-descending" size={20} /> },
+                  { label: 'More Seats Available', value: 'moreSeats', icon: <MaterialIcons name="person-add-alt" size={20} /> },
+                ].map(option => (
+                  <TouchableOpacity
+                    key={option.value}
+                    style={styles.sortOption}
+                    onPress={() => setSortCriteria(option.value)}
+                  >
+                    {option.icon}
+                    <Text style={styles.optionLabel}>{option.label}</Text>
+                    <View style={styles.radioOuter}>
+                      {sortCriteria === option.value && <View style={styles.radioInner} />}
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </View>
+          <View style={styles.ridesSection}>
+            {rides.length === 0 ? (
+              <View style={styles.noRidesContainer}>
+                <Text style={styles.noRidesText}>No rides found! Search for a different ride!</Text>
+                <Image source={require('../assets/img4.png')} style={styles.noRidesImage} />
+              </View>
+            ) : (
+              <View style={styles.ridesList}>
+                <Text style={styles.dateLabel}>{formatDate(rides[0].date)}</Text>
+                <Text style={styles.availableLabel}>{rides.length} {rides.length === 1 ? 'ride available' : 'rides available'}</Text>
+                {rides.map((ride) => (
+                  <RideDetails key={ride._id} ride={ride} />
+                ))}
+              </View>
+            )}
+          </View>
+        </View>
+      )}
+    </ScrollView>
+  );
+}
 
 const styles = StyleSheet.create({
-    container: {
-        padding: 16,
-        backgroundColor: "#fff",
-    },
-    title: {
-        fontSize: 24,
-        fontWeight: "bold",
-        textAlign: "center",
-        color: "#374151",
-        marginBottom: 20,
-    },
-    resultsContainer: {
-        flexDirection: "column",
-    },
-    sortContainer: {
-        padding: 16,
-        backgroundColor: "#F3F4F6",
-    },
-    sortHeader: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: 16,
-    },
-    sortTitle: {
-        fontSize: 18,
-        fontWeight: "bold",
-        color: "#374151",
-    },
-    clearText: {
-        color: "#10B981",
-        fontWeight: "bold",
-    },
-    sortOptions: {
-        flexDirection: "column",
-    },
-    sortOption: {
-        paddingVertical: 8,
-    },
-    sortText: {
-        fontSize: 16,
-        color: "#374151",
-    },
-    rideList: {
-        padding: 16,
-    },
-    date: {
-        fontSize: 18,
-        fontWeight: "bold",
-        color: "#374151",
-    },
-    availableText: {
-        fontSize: 16,
-        color: "#6B7280",
-    },
-    emptyState: {
-        alignItems: "center",
-        marginTop: 20,
-    },
-    emptyText: {
-        fontSize: 16,
-        color: "#374151",
-        textAlign: "center",
-    },
-    emptyImage: {
-        width: 200,
-        height: 200,
-        marginTop: 10,
-    },
+  container: {
+    paddingVertical: 20,
+    backgroundColor: '#fff',
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    color: '#334155',
+    marginVertical: 10,
+  },
+  searchBar: {
+    marginHorizontal: 16,
+    marginVertical: 10,
+  },
+  bodyWrapper: {
+    flexDirection: 'row',
+    backgroundColor: '#f3f4f6',
+  },
+  sortSection: {
+    width: '35%',
+    padding: 16,
+  },
+  sortHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  sortTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#334155',
+  },
+  clearText: {
+    color: '#059669',
+    fontWeight: 'bold',
+    textDecorationLine: 'underline',
+  },
+  sortOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 8,
+  },
+  optionLabel: {
+    marginLeft: 8,
+    flex: 1,
+    fontSize: 16,
+    color: '#334155',
+  },
+  radioOuter: {
+    height: 16,
+    width: 16,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#000',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  radioInner: {
+    height: 8,
+    width: 8,
+    borderRadius: 4,
+    backgroundColor: '#000',
+  },
+  ridesSection: {
+    width: '65%',
+    padding: 16,
+  },
+  noRidesContainer: {
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  noRidesText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1f2937',
+  },
+  noRidesImage: {
+    height: 200,
+    width: 200,
+    resizeMode: 'contain',
+    marginTop: 10,
+  },
+  ridesList: {
+    marginTop: 10,
+  },
+  dateLabel: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#334155',
+  },
+  availableLabel: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#6b7280',
+    marginBottom: 10,
+  },
 });
 
 export default Search;
+

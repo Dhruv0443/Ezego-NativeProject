@@ -1,11 +1,25 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, Alert, StyleSheet } from 'react-native';
-import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
-import { useRides } from '../context/RidesContext'; // Ensure `useRides` is compatible with React Native
-import places from '../data/places'; // Import your places data
+import React, { useState, useRef } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  FlatList,
+  Keyboard,
+  Platform,
+  TouchableWithoutFeedback,
+} from 'react-native';
+import IconLocation from 'react-native-vector-icons/Ionicons';
+import IconCalendar from 'react-native-vector-icons/Ionicons';
+import IconPerson from 'react-native-vector-icons/Ionicons';
+import IconPlus from 'react-native-vector-icons/Entypo';
+import IconMinus from 'react-native-vector-icons/Entypo';
+import places from '../data/places';
 
 const SearchBar = ({ searchRides }) => {
   const today = new Date().toISOString().split('T')[0];
+
   const [leavingFrom, setLeavingFrom] = useState('');
   const [goingTo, setGoingTo] = useState('');
   const [date, setDate] = useState(today);
@@ -16,56 +30,26 @@ const SearchBar = ({ searchRides }) => {
   const [showGoingToSuggestions, setShowGoingToSuggestions] = useState(false);
 
   const handleInputChange = (field, value) => {
-    switch (field) {
-      case 'leavingFrom':
-        setLeavingFrom(value);
-        setFilteredLeavingFrom(
-          places.filter((place) =>
-            place.toLowerCase().startsWith(value.toLowerCase())
-          )
-        );
-        setShowLeavingFromSuggestions(true);
-        break;
-      case 'goingTo':
-        setGoingTo(value);
-        setFilteredGoingTo(
-          places.filter((place) =>
-            place.toLowerCase().startsWith(value.toLowerCase())
-          )
-        );
-        setShowGoingToSuggestions(true);
-        break;
-      case 'date':
-        setDate(value);
-        break;
-      default:
-        break;
-    }
-  };
-
-  const handleIncrementPassenger = () => {
-    if (passengers < 4) {
-      setPassengers(passengers + 1);
-    }
-  };
-
-  const handleDecrementPassenger = () => {
-    if (passengers > 1) {
-      setPassengers(passengers - 1);
+    if (field === 'leavingFrom') {
+      setLeavingFrom(value);
+      setFilteredLeavingFrom(places.filter(p => p.toLowerCase().startsWith(value.toLowerCase())));
+      setShowLeavingFromSuggestions(true);
+    } else if (field === 'goingTo') {
+      setGoingTo(value);
+      setFilteredGoingTo(places.filter(p => p.toLowerCase().startsWith(value.toLowerCase())));
+      setShowGoingToSuggestions(true);
+    } else if (field === 'date') {
+      setDate(value);
     }
   };
 
   const handleSearch = () => {
     if (!leavingFrom || !goingTo) {
-      Alert.alert('Error', 'Please fill all the fields');
+      alert('Please fill all the fields');
       return;
     }
-
     if (leavingFrom === goingTo) {
-      Alert.alert(
-        'Error',
-        'Pick-up and Drop destinations cannot be same. Please choose a different destination'
-      );
+      alert('Pick-up and Drop destinations cannot be same.');
       return;
     }
 
@@ -73,99 +57,166 @@ const SearchBar = ({ searchRides }) => {
       leavingFrom,
       goingTo,
       date,
-      passengers,
+      NumberOfpassengers: passengers,
     };
 
     searchRides(rideDetails);
-    Alert.alert('Success', 'Ride search initiated');
+    Keyboard.dismiss();
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.row}>
-        <FontAwesomeIcon name="map-marker" style={styles.icon} />
-        <TextInput
-          style={styles.input}
-          placeholder="Leaving from"
-          value={leavingFrom}
-          onChangeText={(text) => handleInputChange('leavingFrom', text)}
-        />
-      </View>
-      {showLeavingFromSuggestions && (
-        <FlatList
-          data={filteredLeavingFrom}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              onPress={() => {
-                setLeavingFrom(item);
-                setShowLeavingFromSuggestions(false);
-              }}
-            >
-              <Text style={styles.suggestionItem}>{item}</Text>
-            </TouchableOpacity>
-          )}
-          keyExtractor={(item, index) => index.toString()}
-        />
-      )}
-      <View style={styles.row}>
-        <FontAwesomeIcon name="map-marker" style={styles.icon} />
-        <TextInput
-          style={styles.input}
-          placeholder="Going to"
-          value={goingTo}
-          onChangeText={(text) => handleInputChange('goingTo', text)}
-        />
-      </View>
-      {showGoingToSuggestions && (
-        <FlatList
-          data={filteredGoingTo}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              onPress={() => {
-                setGoingTo(item);
-                setShowGoingToSuggestions(false);
-              }}
-            >
-              <Text style={styles.suggestionItem}>{item}</Text>
-            </TouchableOpacity>
-          )}
-          keyExtractor={(item, index) => index.toString()}
-        />
-      )}
-      <View style={styles.row}>
-        <FontAwesomeIcon name="calendar" style={styles.icon} />
-        <TextInput
-          style={styles.input}
-          placeholder="Date"
-          value={date}
-          onChangeText={(text) => handleInputChange('date', text)}
-        />
-      </View>
-      <View style={styles.row}>
-        <FontAwesomeIcon name="user" style={styles.icon} />
-        <Text>{passengers} {passengers === 1 ? 'Passenger' : 'Passengers'}</Text>
-        <TouchableOpacity onPress={handleDecrementPassenger}>
-          <FontAwesomeIcon name="minus-circle" style={styles.icon} />
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <View style={styles.container}>
+        {/* Leaving From */}
+        <View style={styles.inputGroup}>
+          <IconLocation name="location-outline" size={20} style={styles.icon} />
+          <TextInput
+            placeholder="Leaving from"
+            value={leavingFrom}
+            onChangeText={(text) => handleInputChange('leavingFrom', text)}
+            style={styles.input}
+          />
+        </View>
+        {showLeavingFromSuggestions && (
+          <FlatList
+            data={filteredLeavingFrom}
+            keyExtractor={(item, index) => index.toString()}
+            style={styles.suggestionBox}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                onPress={() => {
+                  setLeavingFrom(item);
+                  setShowLeavingFromSuggestions(false);
+                }}
+                style={styles.suggestionItem}
+              >
+                <Text>{item}</Text>
+              </TouchableOpacity>
+            )}
+          />
+        )}
+
+        {/* Going To */}
+        <View style={styles.inputGroup}>
+          <IconLocation name="location-outline" size={20} style={styles.icon} />
+          <TextInput
+            placeholder="Going to"
+            value={goingTo}
+            onChangeText={(text) => handleInputChange('goingTo', text)}
+            style={styles.input}
+          />
+        </View>
+        {showGoingToSuggestions && (
+          <FlatList
+            data={filteredGoingTo}
+            keyExtractor={(item, index) => index.toString()}
+            style={styles.suggestionBox}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                onPress={() => {
+                  setGoingTo(item);
+                  setShowGoingToSuggestions(false);
+                }}
+                style={styles.suggestionItem}
+              >
+                <Text>{item}</Text>
+              </TouchableOpacity>
+            )}
+          />
+        )}
+
+        {/* Date */}
+        <View style={styles.inputGroup}>
+          <IconCalendar name="calendar-outline" size={20} style={styles.icon} />
+          <TextInput
+            style={styles.input}
+            value={date}
+            onChangeText={(text) => handleInputChange('date', text)}
+            placeholder="YYYY-MM-DD"
+            keyboardType="numeric"
+          />
+        </View>
+
+        {/* Passenger Count */}
+        <View style={styles.passengerRow}>
+          <IconPerson name="person-outline" size={20} />
+          <Text style={styles.passengerText}>
+            {passengers} {passengers === 1 ? 'passenger' : 'passengers'}
+          </Text>
+          <TouchableOpacity onPress={() => setPassengers(Math.max(1, passengers - 1))}>
+            <IconMinus name="circle-with-minus" size={24} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setPassengers(Math.min(4, passengers + 1))}>
+            <IconPlus name="circle-with-plus" size={24} />
+          </TouchableOpacity>
+        </View>
+
+        {/* Search Button */}
+        <TouchableOpacity style={styles.searchBtn} onPress={handleSearch}>
+          <Text style={styles.searchText}>Search</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={handleIncrementPassenger}>
-          <FontAwesomeIcon name="plus-circle" style={styles.icon} />
-        </TouchableOpacity>
       </View>
-      <TouchableOpacity style={styles.button} onPress={handleSearch}>
-        <Text style={styles.buttonText}>Search</Text>
-      </TouchableOpacity>
-    </View>
+    </TouchableWithoutFeedback>
   );
 };
 
-const styles = StyleSheet.create({
-  container: { padding: 16 },
-  row: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  icon: { fontSize: 20, marginRight: 8 },
-  input: { borderWidth: 1, borderColor: '#ccc', padding: 8, flex: 1 },
-  suggestionItem: { padding: 8, borderBottomWidth: 1, borderColor: '#ddd' },
-  button: { backgroundColor: '#00796b', padding: 16, alignItems: 'center', borderRadius: 8 },
-  buttonText: { color: '#fff', fontWeight: 'bold' },
-});
-
 export default SearchBar;
+
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: '#fff',
+    padding: 16,
+    margin: 16,
+    borderRadius: 12,
+    elevation: 2,
+  },
+  inputGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderBottomColor: '#ddd',
+    borderBottomWidth: 1,
+    paddingVertical: 8,
+  },
+  icon: {
+    marginRight: 10,
+  },
+  input: {
+    flex: 1,
+    paddingVertical: Platform.OS === 'ios' ? 10 : 5,
+  },
+  passengerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    marginTop: 10,
+  },
+  passengerText: {
+    fontSize: 16,
+  },
+  searchBtn: {
+    marginTop: 16,
+    backgroundColor: '#047857',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  searchText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  suggestionBox: {
+    maxHeight: 120,
+    backgroundColor: '#fff',
+    borderColor: '#ddd',
+    borderWidth: 1,
+    borderRadius: 6,
+    marginBottom: 10,
+  },
+  suggestionItem: {
+    padding: 10,
+    borderBottomColor: '#eee',
+    borderBottomWidth: 1,
+  },
+});

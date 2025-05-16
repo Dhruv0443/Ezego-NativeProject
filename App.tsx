@@ -1,102 +1,104 @@
-import React from "react";
-import { NavigationContainer } from "@react-navigation/native";
-import { createStackNavigator } from "@react-navigation/stack";
-import { Image, View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import Home from "./pages/Home";
-import Faq from "./pages/Faq";
-import Account from "./pages/Account"; // Renamed LoginPrompt to Accounts
+//App.js
+import React, { useState, useEffect } from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { SafeAreaView, StatusBar, StyleSheet } from 'react-native';
 
-const Stack = createStackNavigator();
+import Home from './pages/Home';
+import Search from './pages/Search';
+import OfferRide from './pages/OfferRide';
+import Account from './pages/Account';
+import Faq from './pages/Faq';
+import MyRides from './pages/MyRides';
+import Profile from './pages/Profile';
+import Verification from './pages/Verification';
+import LoginPrompt from './components/LoginPrompt';
+import Navbar from './components/Navbar';
+
+const Stack = createNativeStackNavigator();
 
 const App = () => {
-    return (
-        <NavigationContainer>
-            <Stack.Navigator initialRouteName="Home">
-                <Stack.Screen
-                    name="Home"
-                    component={Home}
-                    options={({ navigation }) => ({
-                        headerTitle: () => (
-                            <View style={styles.headerContainer}>
-                                <Image
-                                    source={require('./assets/logo.png')}
-                                    style={styles.logo}
-                                />
-                                <Text style={styles.headerText}>Home</Text>
-                            </View>
-                        ),
-                        headerRight: () => (
-                            <TouchableOpacity onPress={() => navigation.navigate("Account")}>
-                                <Image
-                                    source={require('./assets/user.png')}
-                                    style={styles.headerImage}
-                                />
-                            </TouchableOpacity>
-                        ),
-                    })}
-                />
-                <Stack.Screen
-                    name="Faq"
-                    component={Faq}
-                    options={({ navigation }) => ({
-                        headerTitle: () => (
-                            <View style={styles.headerContainer}>
-                                <Image
-                                    source={require('./assets/logo.png')}
-                                    style={styles.logo}
-                                />
-                                <Text style={styles.headerText}>FAQs</Text>
-                            </View>
-                        ),
-                        headerRight: () => (
-                            <TouchableOpacity onPress={() => navigation.navigate("Account")}>
-                                <Image
-                                    source={require('./assets/user.png')}
-                                    style={styles.headerImage}
-                                />
-                            </TouchableOpacity>
-                        ),
-                    })}
-                />
-                <Stack.Screen
-                    name="Account"
-                    component={Account}
-                    options={({ navigation }) => ({
-                        headerTitle: () => (
-                            <View style={styles.headerContainer}>
-                                <Image
-                                    source={require('./assets/logo.png')}
-                                    style={styles.logo}
-                                />
-                                <Text style={styles.headerText}>Accounts</Text>
-                            </View>
-                        )
-                    })}
-                />
-            </Stack.Navigator>
-        </NavigationContainer>
-    );
+  const [userData, setUserData] = useState(null);
+  const [isDriverVerified, setIsDriverVerified] = useState(false);
+
+  const handleLogin = (user) => {
+    // Simulate login with dummy user
+    const dummyUser = {
+      name: 'Dummy User',
+      email: user.email || 'dummy@example.com',
+      isDriver: false,
+    };
+    setUserData(dummyUser);
+  };
+
+  const handleProfileVerification = (details) => {
+    if (userData) {
+      const updatedUserData = {
+        ...userData,
+        isDriver: true,
+        carName: details.carName,
+        carNumber: details.carNumber,
+        driverPhoto: details.driverPhoto,
+      };
+      setUserData(updatedUserData);
+      setIsDriverVerified(true);
+    }
+  };
+
+  useEffect(() => {
+    if (userData && userData.isDriver) {
+      setIsDriverVerified(true);
+    }
+  }, [userData]);
+
+  const determineOfferElement = () => {
+    // if (userData) {
+    //   return userData.isDriver ? (
+    //     <OfferRide userData={userData} />
+    //   ) : (
+    //     <Verification onVerify={handleProfileVerification} />
+    //   );
+    return userData ? <OfferRide userData={userData} />: <LoginPrompt />;
+    };
+
+  const determineSearchElement = () => {
+    return userData ? <Search /> : <LoginPrompt />;
+  };
+
+  const handleLogout = () => {
+    setUserData(null);
+    setIsDriverVerified(false);
+  };
+
+  return (
+    <NavigationContainer>
+      <SafeAreaView style={styles.container}>
+        <Navbar userData={userData} onLogout={handleLogout} />
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="Home" component={Home} />
+          <Stack.Screen name="Search" children={determineSearchElement} />
+          <Stack.Screen name="Offer" children={determineOfferElement} />
+          <Stack.Screen name="Account">
+            {() => <Account onLogin={handleLogin} />}
+          </Stack.Screen>
+          <Stack.Screen name="Faq" component={Faq} />
+          <Stack.Screen name="MyRides" component={MyRides} />
+          <Stack.Screen name="Profile">
+            {() => <Profile userData={userData} onLogout={handleLogout} />}
+          </Stack.Screen>
+        </Stack.Navigator>
+      </SafeAreaView>
+    </NavigationContainer>
+  );
 };
 
-const styles = StyleSheet.create({
-    headerContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-    },
-    logo: {
-        width: 40,
-        height: 40,
-        marginRight: 10,
-    },
-    headerText: {
-        fontSize: 18,
-        fontWeight: "bold",
-    },
-    headerImage: {
-        width: 30,
-        height: 30,
-        marginRight: 10,
-    },
-});
-
 export default App;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: 'white',
+    paddingTop: StatusBar.currentHeight,
+    marginTop: 30,
+  },
+});

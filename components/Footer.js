@@ -1,35 +1,116 @@
-import React from "react";
-import { View, Text, StyleSheet } from "react-native";
-import { FontAwesome } from "@expo/vector-icons"; // Replacement for `react-icons/ti`
+// import React from 'react';
+// import { View, Text, StyleSheet, Linking, TouchableOpacity } from 'react-native';
+// import IconFacebook from 'react-native-vector-icons/FontAwesome';
+// import IconInstagram from 'react-native-vector-icons/FontAwesome';
+// import IconTwitter from 'react-native-vector-icons/FontAwesome';
+// import IconYoutube from 'react-native-vector-icons/FontAwesome';
+// import { useNavigation } from '@react-navigation/native';
+
+// const Footer = () => {
+//   const navigation = useNavigation();
+
+//   return (
+//     <View style={styles.footer}>
+//       <View style={styles.row}>  
+//         <View style={styles.column}>
+//           {/* <Text style={styles.heading}></Text> */}
+//           <View style={styles.socialRow}>
+//             <TouchableOpacity onPress={() => Linking.openURL('https://www.facebook.com')}>
+//               <IconFacebook name="facebook-square" size={32} style={styles.icon} />
+//             </TouchableOpacity>
+//             <TouchableOpacity onPress={() => Linking.openURL('https://www.instagram.com')}>
+//               <IconInstagram name="instagram" size={32} style={styles.icon} />
+//             </TouchableOpacity>
+//             <TouchableOpacity onPress={() => Linking.openURL('https://www.twitter.com')}>
+//               <IconTwitter name="twitter-square" size={32} style={styles.icon} />
+//             </TouchableOpacity>
+//             <TouchableOpacity onPress={() => Linking.openURL('https://www.youtube.com')}>
+//               <IconYoutube name="youtube-play" size={32} style={styles.icon} />
+//             </TouchableOpacity>
+//           </View>
+//         </View>
+//       </View>
+//     </View>
+//   );
+// };
+
+// const styles = StyleSheet.create({
+//   footer: {
+//     backgroundColor: '#e5e7eb', // Tailwind gray-200
+//     paddingVertical: 24,
+//   },
+//   row: {
+//     flexDirection: 'row',
+//     justifyContent: 'space-around',
+//     // paddingHorizontal: 10,
+//     flexWrap: 'wrap',
+//   },
+//   column: {
+//     width: '40%',
+//     marginVertical: 12,
+//     textAlign:'center',
+//   },
+//   heading: {
+//     fontSize: 16,
+//     fontWeight: '600',
+//     // marginBottom: 12,
+//     color: '#1e293b', // slate-800
+//   },
+//   item: {
+//     fontSize: 14,
+//     marginBottom: 6,
+//     color: '#1e293b',
+//   },
+//   link: {
+//     textDecorationLine: 'underline',
+//   },
+//   socialRow: {
+//     flexDirection: 'row',
+//     alignItems: 'center',
+//     gap: 12,
+//     marginTop: 8,
+//   },
+//   icon: {
+//     marginRight: 10,
+//     color: 'black',
+//   },
+// });
+
+// export default Footer;
+import React from 'react';
+import { View, StyleSheet, Linking, TouchableOpacity } from 'react-native';
+import IconFacebook from 'react-native-vector-icons/FontAwesome';
+import IconInstagram from 'react-native-vector-icons/FontAwesome';
+import IconTwitter from 'react-native-vector-icons/FontAwesome';
+import IconYoutube from 'react-native-vector-icons/FontAwesome';
+
+const openAppOrStore = async (appUrl, storeUrl) => {
+  const canOpen = await Linking.canOpenURL(appUrl);
+  if (canOpen) {
+    Linking.openURL(appUrl);
+  } else {
+    Linking.openURL(storeUrl);
+  }
+};
 
 const Footer = () => {
   return (
     <View style={styles.footer}>
-      <View style={styles.container}>
-        {/* Top Carpool Routes Section */}
-        <View style={styles.section}>
-          <Text style={styles.title}>Top Carpool Routes</Text>
-          <Text style={styles.text}>Elante Mall - Sector 17 Market</Text>
-          <Text style={styles.text}>ISBT 43 - Railway Station</Text>
-          <Text style={styles.text}>Tribune Chowk - Airport, Mohali</Text>
-          <Text style={styles.text}>I.S Bindra Stadium - Sukhna Lake</Text>
-        </View>
-        {/* About Section */}
-        <View style={styles.section}>
-          <Text style={styles.title}>About</Text>
-          <Text style={styles.text}>How it works</Text>
-          <Text style={styles.text}>About us</Text>
-          <Text style={styles.text}>Help Centre</Text>
-          <Text style={styles.text}>Account</Text>
-        </View>
-        {/* Follow Us Section */}
-        <View style={styles.section}>
-          <Text style={styles.title}>Follow Us</Text>
-          <View style={styles.iconRow}>
-            <FontAwesome name="facebook" size={30} style={styles.icon} />
-            <FontAwesome name="instagram" size={30} style={styles.icon} />
-            <FontAwesome name="twitter" size={30} style={styles.icon} />
-            <FontAwesome name="youtube" size={30} style={styles.icon} />
+      <View style={styles.row}>  
+        <View style={styles.column}>
+          <View style={styles.socialRow}>
+            <TouchableOpacity onPress={() => openAppOrStore('fb://page/yourPageID', 'https://play.google.com/store/apps/details?id=com.facebook.katana')}>
+              <IconFacebook name="facebook-square" size={32} style={styles.icon} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => openAppOrStore('instagram://user?username=yourUsername', 'https://play.google.com/store/apps/details?id=com.instagram.android')}>
+              <IconInstagram name="instagram" size={32} style={styles.icon} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => openAppOrStore('twitter://user?screen_name=yourUsername', 'https://play.google.com/store/apps/details?id=com.twitter.android')}>
+              <IconTwitter name="twitter-square" size={32} style={styles.icon} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => openAppOrStore('vnd.youtube://channel/yourChannelID', 'https://play.google.com/store/apps/details?id=com.google.android.youtube')}>
+              <IconYoutube name="youtube-play" size={32} style={styles.icon} />
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -39,33 +120,28 @@ const Footer = () => {
 
 const styles = StyleSheet.create({
   footer: {
-    backgroundColor: "#e2e2e2",
-    paddingVertical: 20,
-    marginTop: 40,
+    backgroundColor: '#e5e7eb',
+    paddingVertical: 24,
   },
-  container: {
-    width: "90%",
-    alignSelf: "center",
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    flexWrap: 'wrap',
   },
-  section: {
-    marginBottom: 20,
+  column: {
+    width: '40%',
+    marginVertical: 12,
+    textAlign:'center',
   },
-  title: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
-  text: {
-    fontSize: 14,
-    marginVertical: 5,
-  },
-  iconRow: {
-    flexDirection: "row",
-    marginTop: 10,
+  socialRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginTop: 8,
   },
   icon: {
-    marginHorizontal: 10,
-    color: "#000",
+    marginRight: 10,
+    color: 'black',
   },
 });
 

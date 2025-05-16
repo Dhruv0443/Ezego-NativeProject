@@ -1,78 +1,112 @@
-import React, { useEffect } from "react";
-import { View, Text, FlatList, Image, StyleSheet, ScrollView } from "react-native";
-import { useRides } from "../context/RidesContext";
-import BookedRide from "../components/BookedRide"; // Ensure BookedRide is adapted for React Native
+//mYRides.js
+
+import React, { useState } from 'react';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 
 const MyRides = () => {
-    const { bookedRides } = useRides();
+  const [rides, setRides] = useState([
+    {
+      id: '1',
+      from: 'Ambala',
+      to: 'Delhi',
+      date: '2025-05-20',
+      seats: 3,
+      price: 250,
+    },
+    {
+      id: '2',
+      from: 'Chandigarh',
+      to: 'Saharanpur',
+      date: '2025-05-22',
+      seats: 2,
+      price: 300,
+    },
+  ]);
 
-    useEffect(() => {
-        // Scroll to the top is not needed in React Native, as it doesn't have window scroll behavior
-    }, []);
+  const handleDelete = (id) => {
+    Alert.alert('Delete Ride', 'Are you sure you want to delete this ride?', [
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+      {
+        text: 'Delete',
+        onPress: () => {
+          setRides((prev) => prev.filter((ride) => ride.id !== id));
+        },
+        style: 'destructive',
+      },
+    ]);
+  };
 
-    return (
-        <ScrollView contentContainerStyle={styles.container}>
-            <View style={styles.space}></View>
+  const renderRide = ({ item }) => (
+    <View style={styles.card}>
+      <Text style={styles.info}>From: {item.from}</Text>
+      <Text style={styles.info}>To: {item.to}</Text>
+      <Text style={styles.info}>Date: {item.date}</Text>
+      <Text style={styles.info}>Seats: {item.seats}</Text>
+      <Text style={styles.info}>Price: ₹{item.price}</Text>
+      <TouchableOpacity onPress={() => handleDelete(item.id)} style={styles.deleteButton}>
+        <Text style={styles.deleteText}>Delete Ride</Text>
+      </TouchableOpacity>
+    </View>
+  );
 
-            {bookedRides.length > 0 ? (
-                <>
-                    <Text style={styles.heading}>Booked Rides</Text>
-                    <FlatList
-                        data={bookedRides}
-                        keyExtractor={(item) => item._id}
-                        renderItem={({ item }) => <BookedRide ride={item} />}
-                        contentContainerStyle={styles.list}
-                    />
-                </>
-            ) : (
-                <View style={styles.emptyState}>
-                    <Image
-                        source={require("../assets/mr.jpg")} // Adjust the path to match your project structure
-                        style={styles.image}
-                        resizeMode="contain"
-                    />
-                    <Text style={styles.emptyText}>Your future travel plans will appear here!</Text>
-                </View>
-            )}
-        </ScrollView>
-    );
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>My Rides</Text>
+      <FlatList
+        data={rides}
+        keyExtractor={(item) => item.id}
+        renderItem={renderRide}
+        ListEmptyComponent={<Text style={styles.empty}>No rides offered yet.</Text>}
+      />
+    </View>
+  );
 };
 
+export default MyRides;
+
 const styles = StyleSheet.create({
-    container: {
-        flexGrow: 1,
-        backgroundColor: "#fff",
-        paddingBottom: 20,
-    },
-    space: {
-        height: 10,
-        backgroundColor: "#fff",
-    },
-    heading: {
-        fontSize: 24,
-        fontWeight: "bold",
-        textAlign: "center",
-        marginVertical: 10,
-        color: "#374151", // Slate gray color
-    },
-    list: {
-        paddingHorizontal: 16,
-    },
-    emptyState: {
-        alignItems: "center",
-        marginTop: 20,
-    },
-    image: {
-        height: 200,
-        width: 200,
-    },
-    emptyText: {
-        fontSize: 20,
-        color: "#374151",
-        fontWeight: "bold",
-        marginTop: 10,
-        textAlign: "center",
-    },
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: 'white',
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: '700',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  card: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 10,
+    padding: 14,
+    marginBottom: 12,
+    backgroundColor: '#f9f9f9',
+  },
+  info: {
+    fontSize: 16,
+    marginBottom: 4,
+  },
+  deleteButton: {
+    marginTop: 10,
+    backgroundColor: '#ff4444',
+    padding: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  deleteText: {
+    color: 'white',
+    fontWeight: '600',
+  },
+  empty: {
+    textAlign: 'center',
+    marginTop: 40,
+    fontSize: 16,
+    color: '#777',
+  },
 });
 
-export default MyRides;
