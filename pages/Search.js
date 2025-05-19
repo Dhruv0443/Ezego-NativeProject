@@ -1,14 +1,11 @@
-//Search.js (page)
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image } from 'react-native';
-import axios from 'axios';
-import CookieManager from '@react-native-cookies/cookies';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+
 import SearchBar from '../components/SearchBar';
 import RideDetails from '../components/RideDetails';
-import API_BASE_URL from '../ApiBaseURL';
 
 function Search() {
   const [rides, setRides] = useState([]);
@@ -16,35 +13,11 @@ function Search() {
   const [sortCriteria, setSortCriteria] = useState('');
   const [originalRides, setOriginalRides] = useState([]);
 
-  const searchRides = async (rideDetails) => {
+  // Now searchRides just receives the filtered array directly from SearchBar
+  const searchRides = (filteredRidesArray) => {
     setSearchPerformed(true);
-    try {
-      const cookie = await CookieManager.get('http://localhost');
-      const token = cookie.accessToken?.value;
-
-      const response = await axios.post(
-        `${API_BASE_URL}rides/searchRides`,
-        rideDetails,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          withCredentials: true,
-        }
-      );
-
-      const data = response.data;
-
-      if (data.statusCode === 200) {
-        setRides(data.data);
-        setOriginalRides([...data.data]);
-      } else {
-        console.error('Failed to fetch rides:', data.message);
-      }
-    } catch (error) {
-      console.error('Error fetching rides:', error);
-    }
+    setRides(filteredRidesArray);
+    setOriginalRides(filteredRidesArray);
   };
 
   function formatDate(dateString) {
@@ -84,6 +57,7 @@ function Search() {
 
   const clearAllSorts = () => {
     setRides([...originalRides]);
+    setSortCriteria('');
   };
 
   return (
@@ -133,7 +107,7 @@ function Search() {
                 <Text style={styles.dateLabel}>{formatDate(rides[0].date)}</Text>
                 <Text style={styles.availableLabel}>{rides.length} {rides.length === 1 ? 'ride available' : 'rides available'}</Text>
                 {rides.map((ride) => (
-                  <RideDetails key={ride._id} ride={ride} />
+                  <RideDetails key={ride.id} ride={ride} />
                 ))}
               </View>
             )}
@@ -246,4 +220,3 @@ const styles = StyleSheet.create({
 });
 
 export default Search;
-

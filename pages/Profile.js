@@ -55,7 +55,7 @@ const Profile = ({ userData, onLogout }) => {
         <View style={styles.profileHeader}>
           <View>
             <Text style={styles.name}>{userData.name}</Text>
-            <Text style={styles.subText}>Newcomer</Text>
+            {/* <Text style={styles.subText}>Newcomer</Text> */}
           </View>
           <IconUser name="user" size={50} color="#334155" />
         </View>

@@ -1,4 +1,5 @@
-import React, { useState, useRef } from 'react';
+
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -9,12 +10,15 @@ import {
   Keyboard,
   Platform,
   TouchableWithoutFeedback,
+  Alert,
 } from 'react-native';
 import IconLocation from 'react-native-vector-icons/Ionicons';
 import IconCalendar from 'react-native-vector-icons/Ionicons';
 import IconPerson from 'react-native-vector-icons/Ionicons';
 import IconPlus from 'react-native-vector-icons/Entypo';
 import IconMinus from 'react-native-vector-icons/Entypo';
+import { ref, get } from 'firebase/database';
+import { db } from '../firebase'; // Make sure this path is correct
 import places from '../data/places';
 
 const SearchBar = ({ searchRides }) => {
@@ -43,25 +47,42 @@ const SearchBar = ({ searchRides }) => {
     }
   };
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     if (!leavingFrom || !goingTo) {
-      alert('Please fill all the fields');
+      Alert.alert('Validation Error', 'Please fill all the fields');
       return;
     }
     if (leavingFrom === goingTo) {
-      alert('Pick-up and Drop destinations cannot be same.');
+      Alert.alert('Validation Error', 'Pick-up and Drop destinations cannot be same.');
       return;
     }
 
-    const rideDetails = {
-      leavingFrom,
-      goingTo,
-      date,
-      NumberOfpassengers: passengers,
-    };
+    try {
+      const ridesRef = ref(db, 'rides');
+      const snapshot = await get(ridesRef);
+      const data = snapshot.val();
 
-    searchRides(rideDetails);
-    Keyboard.dismiss();
+      const filteredRides = [];
+
+      if (data) {
+        Object.entries(data).forEach(([id, ride]) => {
+          if (
+            ride.leavingFrom.toLowerCase() === leavingFrom.toLowerCase() &&
+            ride.goingTo.toLowerCase() === goingTo.toLowerCase() &&
+            ride.date === date &&
+            ride.passengers >= passengers
+          ) {
+            filteredRides.push({ id, ...ride });
+          }
+        });
+      }
+
+      searchRides(filteredRides);
+      Keyboard.dismiss();
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Error', 'Failed to fetch rides');
+    }
   };
 
   return (

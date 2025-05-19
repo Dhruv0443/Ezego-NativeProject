@@ -1,50 +1,60 @@
-//mYRides.js
-
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { ref, onValue, remove } from 'firebase/database';
+import { db } from '../firebase';
 
-const MyRides = () => {
-  const [rides, setRides] = useState([
-    {
-      id: '1',
-      from: 'Ambala',
-      to: 'Delhi',
-      date: '2025-05-20',
-      seats: 3,
-      price: 250,
-    },
-    {
-      id: '2',
-      from: 'Chandigarh',
-      to: 'Saharanpur',
-      date: '2025-05-22',
-      seats: 2,
-      price: 300,
-    },
-  ]);
+const MyRides = ({ userData }) => {
+  const [rides, setRides] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const ridesRef = ref(db, 'rides');
+    const unsubscribe = onValue(ridesRef, (snapshot) => {
+      const data = snapshot.val();
+      const userRides = [];
+
+      for (let key in data) {
+        if (data[key].driverName === userData.name) {
+          userRides.push({
+            id: key,
+            ...data[key],
+          });
+        }
+      }
+
+      setRides(userRides);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [userData.name]);
 
   const handleDelete = (id) => {
     Alert.alert('Delete Ride', 'Are you sure you want to delete this ride?', [
-      {
-        text: 'Cancel',
-        style: 'cancel',
-      },
+      { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete',
-        onPress: () => {
-          setRides((prev) => prev.filter((ride) => ride.id !== id));
-        },
         style: 'destructive',
+        onPress: async () => {
+          try {
+            await remove(ref(db, `rides/${id}`));
+            Alert.alert('Deleted', 'Ride has been deleted.');
+          } catch (error) {
+            console.error(error);
+            Alert.alert('Error', 'Failed to delete ride.');
+          }
+        },
       },
     ]);
   };
 
   const renderRide = ({ item }) => (
     <View style={styles.card}>
-      <Text style={styles.info}>From: {item.from}</Text>
-      <Text style={styles.info}>To: {item.to}</Text>
+      <Text style={styles.info}>From: {item.leavingFrom}</Text>
+      <Text style={styles.info}>To: {item.goingTo}</Text>
       <Text style={styles.info}>Date: {item.date}</Text>
-      <Text style={styles.info}>Seats: {item.seats}</Text>
+      <Text style={styles.info}>Time: {item.time}</Text>
+      <Text style={styles.info}>Seats: {item.passengers}</Text>
       <Text style={styles.info}>Price: ₹{item.price}</Text>
       <TouchableOpacity onPress={() => handleDelete(item.id)} style={styles.deleteButton}>
         <Text style={styles.deleteText}>Delete Ride</Text>
@@ -55,12 +65,16 @@ const MyRides = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>My Rides</Text>
-      <FlatList
-        data={rides}
-        keyExtractor={(item) => item.id}
-        renderItem={renderRide}
-        ListEmptyComponent={<Text style={styles.empty}>No rides offered yet.</Text>}
-      />
+      {loading ? (
+        <Text style={{ textAlign: 'center', marginTop: 20 }}>Loading rides...</Text>
+      ) : (
+        <FlatList
+          data={rides}
+          keyExtractor={(item) => item.id}
+          renderItem={renderRide}
+          ListEmptyComponent={<Text style={styles.empty}>No rides offered yet.</Text>}
+        />
+      )}
     </View>
   );
 };
@@ -109,4 +123,3 @@ const styles = StyleSheet.create({
     color: '#777',
   },
 });
-

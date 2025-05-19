@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "397747793853",
-    "project_id": "exego-6aab9",
-    "storage_bucket": "exego-6aab9.firebasestorage.app"
+    "project_number": "278414825260",
+    "project_id": "ezego-carpool",
+    "storage_bucket": "ezego-carpool.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:397747793853:android:a8138fe9362c281c552cd4",
+        "mobilesdk_app_id": "1:278414825260:android:176c977f820a715d1e7e89",
         "android_client_info": {
-          "package_name": "com.carpoolapp"
+          "package_name": "com.nativeproject"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDSZJyPu1b0M1rvmi1rJBEH2Gbnne4dwZ0"
+          "current_key": "AIzaSyDl2N6aE7BoyVOQeUdskLTeVdtQdOxlad8"
         }
       ],
       "services": {

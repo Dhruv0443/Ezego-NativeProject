@@ -7,14 +7,13 @@ import {
   Image,
   Alert,
   Modal,
-  Pressable
+  Pressable,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/FontAwesome5';
-import API_BASE_URL from '../ApiBaseURL';
 
-const Navbar = ({ userData, onLogout }) => {
+const Navbar = ({ userData }) => {
   const navigation = useNavigation();
   const [dropdownVisible, setDropdownVisible] = useState(false);
 
@@ -24,22 +23,13 @@ const Navbar = ({ userData, onLogout }) => {
 
   const handleLogout = async () => {
     try {
-      const token = await AsyncStorage.getItem('accessToken');
-      const response = await fetch(`${API_BASE_URL}users/logout`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await AsyncStorage.clear(); // clear all local storage
+      Alert.alert('Success', 'Logged out successfully');
 
-      if (response.ok) {
-        Alert.alert('Success', 'Logged out successfully');
-        await AsyncStorage.multiRemove(['accessToken', 'refreshToken']);
-        onLogout();
-      } else {
-        const data = await response.json();
-        Alert.alert('Logout failed', data.message);
-      }
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Account' }],
+      });
     } catch (error) {
       console.error('Logout error:', error);
       Alert.alert('Error', 'An error occurred during logout');
@@ -84,7 +74,7 @@ const Navbar = ({ userData, onLogout }) => {
                     }}
                     style={styles.dropdownItem}
                   >
-                    <Text>{name}'s Profile</Text>
+                    <Text>{name}</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
@@ -97,7 +87,13 @@ const Navbar = ({ userData, onLogout }) => {
                     <Text>My Rides</Text>
                   </TouchableOpacity>
 
-                  <TouchableOpacity onPress={handleLogout} style={styles.dropdownItem}>
+                  <TouchableOpacity
+                    onPress={async () => {
+                      setDropdownVisible(false);
+                      await handleLogout();
+                    }}
+                    style={styles.dropdownItem}
+                  >
                     <Text style={styles.logoutText}>Logout</Text>
                   </TouchableOpacity>
                 </View>
@@ -113,6 +109,8 @@ const Navbar = ({ userData, onLogout }) => {
     </View>
   );
 };
+
+export default Navbar;
 
 const styles = StyleSheet.create({
   navbar: {
@@ -187,5 +185,3 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
-
-export default Navbar;

@@ -1,4 +1,3 @@
-//App.js
 import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -22,13 +21,7 @@ const App = () => {
   const [isDriverVerified, setIsDriverVerified] = useState(false);
 
   const handleLogin = (user) => {
-    // Simulate login with dummy user
-    const dummyUser = {
-      name: 'Dummy User',
-      email: user.email || 'dummy@example.com',
-      isDriver: false,
-    };
-    setUserData(dummyUser);
+    setUserData(user); // user contains userId and other data
   };
 
   const handleProfileVerification = (details) => {
@@ -52,14 +45,15 @@ const App = () => {
   }, [userData]);
 
   const determineOfferElement = () => {
-    // if (userData) {
-    //   return userData.isDriver ? (
-    //     <OfferRide userData={userData} />
-    //   ) : (
-    //     <Verification onVerify={handleProfileVerification} />
-    //   );
-    return userData ? <OfferRide userData={userData} />: <LoginPrompt />;
-    };
+    if (userData) {
+      return userData.isDriver ? (
+        <OfferRide userData={userData} />
+      ) : (
+        <Verification userData={userData} onVerify={handleProfileVerification} />
+      );
+    }
+    return <LoginPrompt />;
+  };
 
   const determineSearchElement = () => {
     return userData ? <Search /> : <LoginPrompt />;
@@ -82,7 +76,7 @@ const App = () => {
             {() => <Account onLogin={handleLogin} />}
           </Stack.Screen>
           <Stack.Screen name="Faq" component={Faq} />
-          <Stack.Screen name="MyRides" component={MyRides} />
+          <Stack.Screen name="MyRides" >{()=><MyRides userData={userData}/>}</Stack.Screen>
           <Stack.Screen name="Profile">
             {() => <Profile userData={userData} onLogout={handleLogout} />}
           </Stack.Screen>

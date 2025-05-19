@@ -1,13 +1,19 @@
-//Account.js
+
 import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, Alert, ScrollView } from 'react-native';
+import {
+  View, Text, TextInput, TouchableOpacity, Image, Alert, ScrollView
+} from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { ref, set, get, child, push } from 'firebase/database';
+import { db } from '../firebase';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Account = ({ onLogin }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
-const navigation = useNavigation();
+  const navigation = useNavigation();
+
   const [formData, setFormData] = useState({
     name: '',
     contact: '',
@@ -17,50 +23,11 @@ const navigation = useNavigation();
 
   const [errors, setErrors] = useState({});
 
-  const [dummyUsers, setDummyUsers] = useState([
-    {
-      name: 'Dhruv',
-      contact: '8265968128',
-      email: 'dhruv123@gmail.com',
-      password: 'Dhruv@1234',
-      isDriver: true,
-      driverVerification: {
-        carName: 'Honda City',
-        carNumber: 'HR26DK1234',
-        livePhoto: 'dummy_photo_1.jpg',
-      },
-      savedRides: [],
-    },
-    {
-      name: 'Rithika',
-      contact: '9012345678',
-      email: 'rithika123@gmail.com',
-      password: 'Rithika@1234',
-      isDriver: false,
-      driverVerification: null,
-      savedRides: [],
-    },
-    {
-      name: 'Jasjot',
-      contact: '9123456780',
-      email: 'jasjot123@gmail.com',
-      password: 'Jasjot@123',
-      isDriver: true,
-      driverVerification: {
-        carName: 'Swift Dzire',
-        carNumber: 'DL8CAF7890',
-        livePhoto: 'dummy_photo_2.jpg',
-      },
-      savedRides: [],
-    },
-  ]);
-
   const handleChange = (name, value) => {
     setFormData(prev => ({ ...prev, [name]: value }));
 
     if (!isLogin) {
       const newErrors = { ...errors };
-
       switch (name) {
         case 'email':
           newErrors.email = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? '' : 'Invalid email';
@@ -70,60 +37,74 @@ const navigation = useNavigation();
           break;
         case 'password':
           newErrors.password = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/.test(value)
-            ? ''
-            : 'Weak password';
+            ? '' : 'Weak password';
           break;
       }
-
       setErrors(newErrors);
     }
   };
 
-  const handleLogin = () => {
-    const matchedUser = dummyUsers.find(
-      user => user.email === formData.email && user.password === formData.password
-    );
-
-    if (matchedUser) {
-      const userData = {
-        email: matchedUser.email,
-        name: matchedUser.name,
-        contact: matchedUser.contact,
-        isDriver: matchedUser.isDriver,
-        carName: matchedUser.driverVerification?.carName,
-        carNumber: matchedUser.driverVerification?.carNumber,
-        livePhoto: matchedUser.driverVerification?.livePhoto,
-        savedRides: matchedUser.savedRides,
-      };
-      onLogin(userData);
-      Alert.alert('Login Successful');
-      navigation.navigate('Home')
-    } else {
-      Alert.alert('Login failed', 'Invalid email or password');
+  const handleLogin = async () => {
+    try {
+      const snapshot = await get(child(ref(db), 'users'));
+      if (snapshot.exists()) {
+        const users = snapshot.val();
+        const matchedEntry = Object.entries(users).find(
+          ([, user]) =>
+            user.email === formData.email && user.password === formData.password
+        );
+        if (matchedEntry) {
+          const [userId, userData] = matchedEntry;
+          await AsyncStorage.setItem('userId', userId); // ✅ Store userId
+          onLogin({ ...userData, userId });
+          Alert.alert('Login Successful');
+          navigation.navigate('Home');
+        } else {
+          Alert.alert('Login failed', 'Invalid email or password');
+        }
+      } else {
+        Alert.alert('Login failed', 'No users found');
+      }
+    } catch (error) {
+      Alert.alert('Error', error.message);
     }
   };
 
-  const handleSignup = () => {
-    const exists = dummyUsers.some(user => user.email === formData.email);
-    if (exists) {
-      Alert.alert('Signup failed', 'Email already exists');
-      return;
+  const handleSignup = async () => {
+    try {
+      const snapshot = await get(child(ref(db), 'users'));
+      const users = snapshot.exists() ? snapshot.val() : {};
+
+      const exists = Object.values(users).some(user => user.email === formData.email);
+      if (exists) {
+        Alert.alert('Signup failed', 'Email already exists');
+        return;
+      }
+
+      const newRef = push(ref(db, 'users'));
+      const userId = newRef.key;
+
+      const newUser = {
+        userId,
+        name: formData.name,
+        contact: formData.contact,
+        email: formData.email,
+        password: formData.password,
+        isDriver: false,
+        driverVerification: null,
+        savedRides: [],
+      };
+
+      await set(newRef, newUser);
+      await AsyncStorage.setItem('userId', userId); // ✅ Store userId
+      onLogin(newUser);
+
+      Alert.alert('Signup successful');
+      setIsLogin(true);
+      navigation.navigate('Home');
+    } catch (error) {
+      Alert.alert('Error', error.message);
     }
-
-    const newUser = {
-      name: formData.name,
-      contact: formData.contact,
-      email: formData.email,
-      password: formData.password,
-      isDriver: false,
-      driverVerification: null,
-      savedRides: [],
-    };
-
-    setDummyUsers(prev => [...prev, newUser]);
-    Alert.alert('Signup successful');
-    setIsLogin(true); // Go to login screen after signup
-    navigation.navigate("Home")
   };
 
   return (
@@ -132,11 +113,7 @@ const navigation = useNavigation();
         <Text style={{ fontSize: 26, fontWeight: 'bold', color: '#1e293b', textAlign: 'center' }}>
           Share the Ride!{'\n'}Share the Journey!
         </Text>
-        <Image
-          source={require('../assets/acc.jpg')}
-          style={{ width: 280, height: 180, marginTop: 20 }}
-          resizeMode="contain"
-        />
+        <Image source={require('../assets/acc.jpg')} style={{ width: 280, height: 180, marginTop: 20 }} resizeMode="contain" />
       </View>
 
       {!isLogin && (

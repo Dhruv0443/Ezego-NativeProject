@@ -1,5 +1,5 @@
-//offerRide.js
-import React, { useState, useEffect, useRef } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,14 +8,10 @@ import {
   FlatList,
   Alert,
   ScrollView,
-  Platform
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
-import { CiCirclePlus, CiCircleMinus } from 'react-icons/ci';
 import places from '../data/places';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
-import API_BASE_URL from '../ApiBaseURL';
+import { db } from '../firebase';
+import { ref, push, get } from 'firebase/database';
 
 const OfferRide = ({ userData }) => {
   const today = new Date().toISOString().split('T')[0];
@@ -42,15 +38,19 @@ const OfferRide = ({ userData }) => {
     switch (field) {
       case 'leavingFrom':
         setLeavingFrom(value);
-        setFilteredLeavingFrom(places.filter((place) =>
-          place.toLowerCase().startsWith(value.toLowerCase())
-        ));
+        setFilteredLeavingFrom(
+          places.filter((place) =>
+            place.toLowerCase().startsWith(value.toLowerCase())
+          )
+        );
         break;
       case 'goingTo':
         setGoingTo(value);
-        setFilteredGoingTo(places.filter((place) =>
-          place.toLowerCase().startsWith(value.toLowerCase())
-        ));
+        setFilteredGoingTo(
+          places.filter((place) =>
+            place.toLowerCase().startsWith(value.toLowerCase())
+          )
+        );
         break;
       case 'date':
         setDate(value);
@@ -58,11 +58,22 @@ const OfferRide = ({ userData }) => {
         else setTime('00:00');
         break;
       case 'time':
-        if (date === today && value <currentTime) {
+        const regex = /^([01]\d|2[0-3]):([0-5]\d)$/;
+        if (!regex.test(value)) {
+          Alert.alert('Invalid Format', 'Time must be in HH:MM (24hr) format.');
+          return;
+        }
+        if (date === today && value < currentTime) {
           Alert.alert('Invalid Time', 'Time must be in the future');
-        } else setTime(value);
+        } else {
+          setTime(value);
+        }
         break;
       case 'price':
+        if (!/^\d+$/.test(value)) {
+          Alert.alert('Invalid Input', 'Price must be a number.');
+          return;
+        }
         setPrice(value);
         break;
     }
@@ -78,7 +89,7 @@ const OfferRide = ({ userData }) => {
       Alert.alert('Missing Fields', 'Please fill all the fields.');
       return;
     }
-
+  
     if (leavingFrom === goingTo) {
       Alert.alert(
         'Invalid Destination',
@@ -86,39 +97,68 @@ const OfferRide = ({ userData }) => {
       );
       return;
     }
-
-    const token = await AsyncStorage.getItem('accessToken');
-    const rideDetails = {
-      driverCarName: userData.carName,
-      driverCarNumber: userData.carNumber,
-      leavingFrom,
-      goingTo,
-      date,
-      time,
-      NumberOfpassengers: passengers,
-      price,
-    };
-
+  
     try {
-      const response = await axios.post(
-        'https://ezegobackend.netlify.app/rides/publishRide',
-        rideDetails,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      const usersSnapshot = await get(ref(db, 'users'));
+      const usersData = usersSnapshot.val();
+  
+      let matchedUserId = null;
+      let carName = '';
+      let carNumber = '';
+  
+      for (const [key, value] of Object.entries(usersData || {})) {
+        if (value.name === userData.name) {
+          matchedUserId = key;
+          carName = value.driverVerification?.carName || '';
+          carNumber = value.driverVerification?.carNumber || '';
+          break;
         }
-      );
-      if (response.data.statusCode === 201) {
-        Alert.alert('Success', 'Ride created successfully!');
-      } else {
-        Alert.alert('Error', response.data.message || 'Something went wrong');
       }
+  
+      if (!matchedUserId) {
+        Alert.alert('Verification Error', 'You are not verified to offer a ride.');
+        return;
+      }
+  
+      if (!carName || !carNumber) {
+        Alert.alert(
+          'Incomplete Profile',
+          'Car details are missing. Please complete your verification.'
+        );
+        return;
+      }
+  
+      const rideDetails = {
+        driverId: matchedUserId,
+        driverName: userData.name || 'Anonymous',
+        driverPhone: userData.contact,
+        driverCarName: carName,
+        driverCarNumber: carNumber,
+        leavingFrom,
+        goingTo,
+        date,
+        time,
+        passengers,
+        price: parseInt(price),
+        createdAt: new Date().toISOString(),
+      };
+  
+      const ridesRef = ref(db, 'rides');
+      await push(ridesRef, rideDetails);
+  
+      Alert.alert('Success', 'Ride created successfully!');
+      setLeavingFrom('');
+      setGoingTo('');
+      setDate(today);
+      setTime(currentTime);
+      setPassengers(1);
+      setPrice('');
     } catch (error) {
       console.error(error);
-      Alert.alert('Error', 'Failed to publish ride');
+      Alert.alert('Error', 'Failed to publish ride.');
     }
   };
+  
 
   return (
     <ScrollView style={{ padding: 20 }}>
@@ -219,4 +259,3 @@ const OfferRide = ({ userData }) => {
 };
 
 export default OfferRide;
-

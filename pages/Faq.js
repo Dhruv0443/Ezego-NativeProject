@@ -34,7 +34,7 @@ const Faq = () => {
 
     return (
         <ScrollView style={styles.container}>
-            <Text style={styles.title}>Ecoride Help Centre</Text>
+            <Text style={styles.title}>Ezego Help Centre</Text>
             {questions.map((item) => (
                 <View key={item.id} style={styles.faqItem}>
                     <Text style={styles.question}>{item.ques}</Text>
